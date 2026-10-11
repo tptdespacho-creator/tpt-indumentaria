@@ -236,6 +236,7 @@ SECCIONES.forEach(function(sec) {
   var hdr = document.createElement('div');
   hdr.style.cssText = 'font-family:"Bebas Neue",sans-serif;font-size:1.3rem;letter-spacing:0.18em;color:'+secColors[sec]+';padding:0.5rem 0 0.4rem;margin-top:0.5rem;border-bottom:1px solid var(--border);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;';
   hdr.innerHTML = sec+'<span style="font-size:0.65rem;letter-spacing:0.12em;color:var(--muted);font-family:Barlow,sans-serif;font-weight:600;">'+secProds.length+' productos</span>';
+  var chev=document.createElement('span'); chev.textContent='\u25BE'; chev.style.cssText='font-size:0.9rem;margin-left:0.4rem;transition:transform 0.2s;'; hdr.appendChild(chev);
   if (sec === 'Pave') {
     hdr.innerHTML += '<a href="https://pave.com.ar/talles/" target="_blank" rel="noopener" style="margin-left:auto;font-size:0.65rem;letter-spacing:0.08em;color:var(--orange);font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;">Ver guía de talles</a>';
   }
@@ -243,7 +244,6 @@ SECCIONES.forEach(function(sec) {
     hdr.innerHTML += '<a href="https://www.jacana.ar/tienda/" target="_blank" rel="noopener" style="margin-left:auto;font-size:0.65rem;letter-spacing:0.08em;color:#C9A227;font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;">Ver guía de talles</a>';
   }
   hdr.style.cursor='pointer'; hdr.style.userSelect='none';
-  var chev=document.createElement('span'); chev.textContent='\u25BE'; chev.style.cssText='font-size:0.9rem;margin-left:0.4rem;transition:transform 0.2s;'; hdr.appendChild(chev);
   var body=document.createElement('div'); body.className='sec-body';
   hdr.addEventListener('click', function(e){ if(e.target.tagName==='A') return; var open=body.style.display!=='none'; body.style.display=open?'none':''; chev.style.transform=open?'rotate(-90deg)':''; });
   lista.appendChild(hdr);
