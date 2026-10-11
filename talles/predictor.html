@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Predictor de talles · Pavé</title>
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; color:#111; margin:0; padding:1.25rem; max-width:520px; }
+  h1 { font-size:1.3rem; margin:0 0 .25rem; }
+  p.sub { margin:0 0 1rem; color:#555; font-size:.9rem; }
+  label { display:block; font-size:.9rem; margin-top:.75rem; }
+  input { width:100%; box-sizing:border-box; padding:.5rem; font-size:1rem; border:1px solid #bbb; border-radius:6px; margin-top:.25rem; }
+  button { margin-top:1rem; width:100%; padding:.7rem; font-size:1rem; border:0; border-radius:6px; background:#111; color:#fff; cursor:pointer; }
+  .resultado { margin-top:1.25rem; padding:1rem; border:1px solid #ddd; border-radius:8px; }
+  .talle { font-size:2rem; font-weight:700; }
+  .detalle { font-size:.9rem; color:#444; margin-top:.5rem; }
+  .aviso { font-size:.8rem; color:#777; margin-top:1rem; }
+  .error { color:#b00020; font-size:.9rem; margin-top:.75rem; }
+</style>
+</head>
+<body>
+<h1>Predictor de talles</h1>
+<p class="sub">Ingresá tus medidas en centímetros. Usamos las tablas de Jersey y Calza de Pavé.</p>
+
+<label>Pecho (cm)<input id="pecho" type="number" step="0.5" inputmode="decimal"></label>
+<label>Cintura (cm)<input id="cintura" type="number" step="0.5" inputmode="decimal"></label>
+<label>Cadera (cm)<input id="cadera" type="number" step="0.5" inputmode="decimal"></label>
+
+<button id="calcular">Calcular talle</button>
+<div id="salida"></div>
+
+<p class="aviso">Regla: se elige el talle más chico cuya medida es igual o mayor a la tuya, para que la prenda no quede ajustada de más. Si el jersey y la calza dan talles distintos, se recomienda el mayor.</p>
+
+<script>
+var TALLES = ['XS','S','M','L','XL','XXL'];
+var TABLAS = {
+  jersey: { pecho: [86,90,94,98,104,110], cintura: [72,76,80,84,90,96] },
+  calza:  { cintura: [66,70,74,78,84,90], cadera: [88,92,96,100,106,112] }
+};
+
+function talleMinimo(medidas, tabla) {
+  for (var i = 0; i < TALLES.length; i++) {
+    var ok = true;
+    for (var k in medidas) {
+      if (medidas[k] === null) continue;
+      if (tabla[k][i] < medidas[k]) { ok = false; break; }
+    }
+    if (ok) return i;
+  }
+  return -1;
+}
+
+function leer(id) {
+  var v = document.getElementById(id).value;
+  return v === '' ? null : parseFloat(v.replace(',', '.'));
+}
+
+document.getElementById('calcular').addEventListener('click', function() {
+  var pecho = leer('pecho'), cintura = leer('cintura'), cadera = leer('cadera');
+  var salida = document.getElementById('salida');
+  if (pecho === null || cintura === null || cadera === null || isNaN(pecho) || isNaN(cintura) || isNaN(cadera)) {
+    salida.innerHTML = '<p class="error">Completá pecho, cintura y cadera.</p>';
+    return;
+  }
+  var iJersey = talleMinimo({ pecho: pecho, cintura: cintura }, TABLAS.jersey);
+  var iCalza  = talleMinimo({ cintura: cintura, cadera: cadera }, TABLAS.calza);
+
+  if (iJersey < 0 || iCalza < 0) {
+    salida.innerHTML = '<div class="resultado"><div class="talle">Consultar</div><div class="detalle">Tus medidas superan la tabla más grande (XXL). Escribinos para revisar tu caso.</div></div>';
+    return;
+  }
+  var final = Math.max(iJersey, iCalza);
+  var detalle = 'Jersey: ' + TALLES[iJersey] + ' · Calza: ' + TALLES[iCalza];
+  if (iJersey !== iCalza) detalle += ' (se recomienda el mayor)';
+  salida.innerHTML = '<div class="resultado"><div>Tu talle recomendado</div><div class="talle">' + TALLES[final] + '</div><div class="detalle">' + detalle + '</div></div>';
+});
+</script>
+</body>
+</html>
