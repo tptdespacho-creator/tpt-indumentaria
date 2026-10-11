@@ -4,7 +4,7 @@ Guías de talles de cada proveedor de indumentaria TPT.
 
 | Proveedor | Carpeta | Estado |
 |---|---|---|
-| HidraSport | [hidrasport/](hidrasport/) | Trisuit con tabla (ver `trisuit.md`) |
+| HidraSport | [hidrasport/](hidrasport/) | Trisuit (`trisuit.md`) y malla entera guardavidas (`malla-entera-guardavidas.md`) |
 | Pavé | [pave/](pave/) | Solo link: https://pave.com.ar/talles/ |
 | Jacana | [jacana/](jacana/) | Solo link: https://www.jacana.ar/tienda/ |
 
