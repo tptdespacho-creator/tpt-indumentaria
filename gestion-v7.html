@@ -680,7 +680,9 @@ const COL_ALIAS={
   precio:['precio','precio unitario','precio unit.'],
   subtotal:['subtotal','precio total por item'],
   total:['total','precio total por pedido'],
-  sena:['sena','seña']
+  sena:['sena','seña'],
+  telefono:['telefono','teléfono','tel','phone'],
+  email:['email','e-mail','mail','correo']
 };
 function col(r,campo){ for(const k of COL_ALIAS[campo]){ const v=r[k]; if(v!=null&&v!=='') return v; } return ''; }
 function agrupar(){
@@ -689,9 +691,11 @@ function agrupar(){
     const d=parseFecha(r.fecha);
     const total=Number(col(r,'total'))||0;
     const key=norm(r.nombre)+'|'+(d?isoDia(d)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'):String(r.fecha||''))+'|'+total;
-    if(!map.has(key)) map.set(key,{key,nombre:String(r.nombre||'').trim(),fecha:d,fechaTxt:String(r.fecha||''),total,senaPlanilla:0,items:[]});
+    if(!map.has(key)) map.set(key,{key,nombre:String(r.nombre||'').trim(),fecha:d,fechaTxt:String(r.fecha||''),total,senaPlanilla:0,items:[],telFormulario:'',emailFormulario:''});
     const p=map.get(key);
     const sena=Number(col(r,'sena')); if(sena>p.senaPlanilla) p.senaPlanilla=sena; // seña cargada a mano en la planilla
+    if(!p.telFormulario){ const tv=col(r,'telefono'); if(tv) p.telFormulario=String(tv).trim(); }
+    if(!p.emailFormulario){ const ev=col(r,'email'); if(ev) p.emailFormulario=String(ev).trim(); }
     const precio=Number(col(r,'precio'))||0, cant=Number(r.cantidad)||1;
     p.items.push({fila:r.fila,producto:String(col(r,'producto')).trim()||'(sin nombre)',talle:String(r.talle||'—').trim()||'—',cantidad:cant,precio,subtotal:Number(col(r,'subtotal'))||precio*cant});
   });
@@ -831,7 +835,7 @@ function plantilla(tipo,p){
   const nombre=(al&&al.nombre?al.nombre.split(',').slice(1).join(',').trim():'')||p.nombre.split(' ')[0];
   return t.replace(/{nombre}/g,nombre).replace(/{items}/g,itemsTxt(p)).replace(/{total}/g,money(p.total)).replace(/{sena}/g,money(p.total*SENA_PCT()/100)).replace(/{pagado}/g,money(pg)).replace(/{saldo}/g,money(p.total-pg)).replace(/{alias}/g,ALIAS());
 }
-function abrirWA(key,tipo){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; _waKey=key; const al=alumnoDe(p); $('wa-tel').value=telLimpio(al&&al.tel); $('wa-txt').value=plantilla(tipo,p); $('modal-wa').classList.add('show'); }
+function abrirWA(key,tipo){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; _waKey=key; const al=alumnoDe(p); const telFallback=p.telFormulario||''; $('wa-tel').value=telLimpio((al&&al.tel)||telFallback); $('wa-txt').value=plantilla(tipo,p); $('modal-wa').classList.add('show'); }
 function enviarWA(){ const tel=telLimpio($('wa-tel').value); const txt=$('wa-txt').value; if(!tel){ toast(t('t_faltatel'),'err'); return; } window.open('https://wa.me/549'+tel+'?text='+encodeURIComponent(txt),'_blank'); }
 function cerrarModal(){ document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('show')); }
 function abrirNotas(key){ const p=PEDIDOS.find(x=>x.key===key); _notasKey=key; $('notas-quien').textContent=p.nombre+' · '+fmtDia(p.fecha); $('notas-txt').value=(GESTION[key]||{}).notas||''; $('modal-notas').classList.add('show'); }
@@ -982,7 +986,7 @@ function renderPedidos(){
     const g=GESTION[p.key]||{}, al=alumnoDe(p), ep=estadoPago(p), pg=pagadoDe(p), ent=estadoEntregaPedido(p);
     const vinc=al?'<span class="badge '+(al.guardado?'b-ok':'b-warn')+'" title="'+(al.guardado?t('title_vinc'):t('title_autovinc'))+'">🏊 '+esc(al.nombre)+(al.guardado?'':t('badge_auto'))+'</span>':'<span class="badge b-err">'+t('badge_sinvinc')+'</span>';
     return '<div class="pedido pago-'+ep+'">'
-      +'<div class="ptop"><div><div class="pname">'+esc(p.nombre)+'</div><div class="pmeta"><span>📅 '+esc(fmtDia(p.fecha)||p.fechaTxt)+'</span>'+vinc+'<span class="badge '+PAGO_CLS[ep]+'">'+pagoLbl(ep)+'</span>'+badgeEntregaPedido(p)+(g.notas?'<span class="badge b-vio" title="'+esc(g.notas)+'">'+t('txt_nota')+'</span>':'')+'</div></div>'
+      +'<div class="ptop"><div><div class="pname">'+esc(p.nombre)+(p.telFormulario?'<span style="font-size:0.68rem;font-weight:400;color:var(--texto-suave);margin-left:6px">📱 '+esc(p.telFormulario)+'</span>':'')+(p.emailFormulario?'<span style="font-size:0.65rem;font-weight:400;color:var(--texto-suave);margin-left:4px">✉ '+esc(p.emailFormulario)+'</span>':'')+'</div><div class="pmeta"><span>📅 '+esc(fmtDia(p.fecha)||p.fechaTxt)+'</span>'+vinc+'<span class="badge '+PAGO_CLS[ep]+'">'+pagoLbl(ep)+'</span>'+badgeEntregaPedido(p)+(g.notas?'<span class="badge b-vio" title="'+esc(g.notas)+'">'+t('txt_nota')+'</span>':'')+'</div></div>'
       +'<div style="text-align:right"><div style="font-weight:800;font-size:1.05rem">'+money(p.total)+'</div><div style="font-size:0.7rem;color:var(--texto-suave)">'+p.prendas+(p.prendas>1?t('txt_prendas2'):t('txt_prenda'))+(pg>0&&pg<p.total?t('txt_saldopref')+money(p.total-pg):'')+'</div></div></div>'
       +'<div class="items">'+p.items.map(it=>{ const ei=entregaItemDe(p,it); const fechaEnt=fechaEntregaItemDe(p,it);
         return '<div class="item"'+(itemCoincide(p,it)?'':' style="opacity:0.35"')+'><span>'+esc(it.producto)+' <span class="t">'+(it.talle!=='—'?'· '+t('txt_talle')+'<b>'+esc(it.talle)+'</b> ':'')+'· x'+it.cantidad+'</span>'+(fechaEnt?'<span style="font-size:0.63rem;color:var(--texto-suave);margin-left:4px">📅 '+esc(fmtDia(fechaEnt))+'</span>':'')+'</span>'
