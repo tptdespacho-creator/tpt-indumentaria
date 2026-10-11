@@ -389,7 +389,7 @@ textarea{width:100%;min-height:150px;resize:vertical;line-height:1.4;}
 <script>
 // ═══════════════════════════ CONFIG ═══════════════════════════
 const DEF_BE='https://tpt-backend-production-4ffa.up.railway.app/exec';
-const DEF_GAS='https://script.google.com/macros/s/AKfycbwREGjI3V2_vjnpSNbe5SbZIw5m2mkn7d1fmp0ZKsu4cGCT4NKpG5IirzkH4TA-A0_2/exec';
+const DEF_GAS='https://script.google.com/macros/s/AKfycbwdyOSDQSm67Vt9h7m5dXVb7Blqnil5rJDDWAvLuOBTfBRGvylFdyAlzzUQZQi7m-Xz/exec';
 const PLANTILLAS={
   conf:'Hola {nombre}! 👋 Registramos tu pedido de indumentaria TPT:\n{items}\nTotal: {total}\n\nPara confirmarlo, transferí la seña de {sena} al alias *{alias}* y mandanos el comprobante por acá. ¡Gracias! 🧡',
   saldo:'Hola {nombre}! 👋 Te recordamos que tu pedido de indumentaria TPT tiene un saldo pendiente de {saldo} (total {total}, pagado {pagado}). Alias: *{alias}*. ¡Gracias!',
@@ -400,9 +400,10 @@ function cfg(k,def){ const v=localStorage.getItem(CFG_KEYS[k]); return (v==null|
 // Si la URL guardada es la deployment vieja (sin getPrendas), la reemplazamos por la nueva
 const URL_VIEJA='https://script.google.com/macros/s/AKfycbyJO2EK';
 const URL_VIEJA2='https://script.google.com/macros/s/AKfycbyRbgPejwg';
+const URL_VIEJA3='https://script.google.com/macros/s/AKfycbwREGjI3V2';
 (function(){
   const g=localStorage.getItem(CFG_KEYS.gas)||'';
-  if(g.startsWith(URL_VIEJA)||g.startsWith(URL_VIEJA2)||g==='') { localStorage.setItem(CFG_KEYS.gas,DEF_GAS); }
+  if(g.startsWith(URL_VIEJA)||g.startsWith(URL_VIEJA2)||g.startsWith(URL_VIEJA3)||g==='') { localStorage.setItem(CFG_KEYS.gas,DEF_GAS); }
   const c=localStorage.getItem(CFG_KEYS.clave)||'';
   if(c==='') { localStorage.setItem(CFG_KEYS.clave,DEF_CLAVE); }
 })();
