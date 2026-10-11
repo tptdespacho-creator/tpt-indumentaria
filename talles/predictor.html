@@ -72,7 +72,7 @@ document.getElementById('calcular').addEventListener('click', function() {
   var final = Math.max(iJersey, iCalza);
   var detalle = 'Jersey: ' + TALLES[iJersey] + ' · Calza: ' + TALLES[iCalza];
   if (iJersey !== iCalza) detalle += ' (se recomienda el mayor)';
-  salida.innerHTML = '<div class="resultado"><div>Tu talle recomendado</div><div class="talle">' + TALLES[final] + '</div><div class="detalle">' + detalle + '</div></div>';
+  salida.innerHTML = '<div class="resultado"><div>Tu talle de Trisuit</div><div class="talle">' + TALLES[final] + '</div><div class="detalle">Calculado con jersey y calza. ' + detalle + '</div></div>';
 });
 </script>
 </body>
