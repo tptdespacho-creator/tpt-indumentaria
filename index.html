@@ -242,7 +242,12 @@ SECCIONES.forEach(function(sec) {
   if (sec === 'Jacana') {
     hdr.innerHTML += '<a href="https://www.jacana.ar/tienda/" target="_blank" rel="noopener" style="margin-left:auto;font-size:0.65rem;letter-spacing:0.08em;color:#C9A227;font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;">Ver guía de talles</a>';
   }
+  hdr.style.cursor='pointer'; hdr.style.userSelect='none';
+  var chev=document.createElement('span'); chev.textContent='\u25BE'; chev.style.cssText='font-size:0.9rem;margin-left:0.4rem;transition:transform 0.2s;'; hdr.appendChild(chev);
+  var body=document.createElement('div'); body.className='sec-body';
+  hdr.addEventListener('click', function(e){ if(e.target.tagName==='A') return; var open=body.style.display!=='none'; body.style.display=open?'none':''; chev.style.transform=open?'rotate(-90deg)':''; });
   lista.appendChild(hdr);
+  lista.appendChild(body);
   secProds.forEach(function(prod) {
     var wrap=document.createElement('div'); wrap.className='prod-row-wrap';
     var row=document.createElement('div'); row.className='prod-row'; row.id='row-'+prod.id;
@@ -278,7 +283,7 @@ SECCIONES.forEach(function(sec) {
       if (on) { row.classList.remove('checked'); det.classList.remove('visible'); if(prod.talle){var s=document.querySelector('input[name="talle-'+prod.id+'"]:checked');if(s)s.checked=false;} document.getElementById('qty-'+prod.id).value='1'; }
       else { row.classList.add('checked'); det.classList.add('visible'); setTimeout(function(){det.scrollIntoView({behavior:'smooth',block:'nearest'});},60); }
     });
-    wrap.appendChild(row); wrap.appendChild(det); lista.appendChild(wrap);
+    wrap.appendChild(row); wrap.appendChild(det); body.appendChild(wrap);
   });
 });
 
