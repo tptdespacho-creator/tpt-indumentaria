@@ -110,6 +110,14 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; height:40vh; 
         <label>Nombre completo</label>
         <input type="text" id="nombre" placeholder="Tu nombre">
       </div>
+      <div class="field">
+        <label>Número de teléfono</label>
+        <input type="tel" id="telefono" placeholder="Ej: 11 2345-6789" inputmode="tel">
+      </div>
+      <div class="field">
+        <label>Email <span style="font-size:0.75rem;color:var(--muted)">(opcional)</span></label>
+        <input type="email" id="email" placeholder="tu@email.com" inputmode="email">
+      </div>
     </div>
     <div class="card">
       <div class="section-label">Seleccioná las prendas</div>
@@ -133,6 +141,7 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; height:40vh; 
       <div>
         <div class="res-nombre-label">Cliente</div>
         <div class="res-nombre-val" id="res-nombre">—</div>
+        <div id="res-contacto" style="font-size:0.72rem;color:var(--muted);margin-top:2px"></div>
       </div>
       <div class="res-fecha" id="res-fecha"></div>
     </div>
@@ -305,8 +314,10 @@ function goTo(from,to,dir) {
 // Ver resumen
 document.getElementById('btnVerResumen').addEventListener('click', function() {
   var nombre=document.getElementById('nombre').value.trim();
+  var telefono=document.getElementById('telefono').value.trim();
   var errEl=document.getElementById('errorMsg');
   if (!nombre){errEl.style.display='block';errEl.textContent='Por favor ingresá tu nombre.';return;}
+  if (!telefono){errEl.style.display='block';errEl.textContent='Por favor ingresá tu número de teléfono.';return;}
   var sel=PRODUCTOS.filter(function(p){return document.getElementById('row-'+p.id).classList.contains('checked');});
   if (!sel.length){errEl.style.display='block';errEl.textContent='Seleccioná al menos una prenda.';return;}
   for(var i=0;i<sel.length;i++){
@@ -315,8 +326,12 @@ document.getElementById('btnVerResumen').addEventListener('click', function() {
     }
   }
   errEl.style.display='none';
+  var telefono2=document.getElementById('telefono').value.trim();
+  var email2=document.getElementById('email').value.trim();
   document.getElementById('res-nombre').textContent=nombre;
   document.getElementById('res-fecha').textContent=new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  var resContacto=document.getElementById('res-contacto');
+  if(resContacto) resContacto.textContent=(telefono2?'📱 '+telefono2:'')+( telefono2&&email2?' · ':'')+( email2?'✉ '+email2:'');
   var tbody=document.getElementById('res-tbody'); tbody.innerHTML=''; var total=0;
   sel.forEach(function(p){
     var talleVal=p.talle?document.querySelector('input[name="talle-'+p.id+'"]:checked').value:'—';
@@ -335,6 +350,8 @@ document.getElementById('btnVolver').addEventListener('click', function(){goTo('
 document.getElementById('btnEnviarPedido').addEventListener('click', function() {
   var btn=this;
   var nombre=document.getElementById('nombre').value.trim();
+  var telefono=document.getElementById('telefono').value.trim();
+  var email=document.getElementById('email').value.trim();
   var sel=PRODUCTOS.filter(function(p){return document.getElementById('row-'+p.id).classList.contains('checked');});
 
   // Validar que cada prenda con talle tenga uno seleccionado ANTES de armar el pedido
@@ -347,7 +364,7 @@ document.getElementById('btnEnviarPedido').addEventListener('click', function() 
   }
 
   btn.disabled=true; btn.textContent='ENVIANDO...';
-  var total=0; var waMsg='Pedido Indumentaria TPT\nNombre: '+nombre+'\n';
+  var total=0; var waMsg='Pedido Indumentaria TPT\nNombre: '+nombre+(telefono?'\nTel: '+telefono:'')+(email?'\nEmail: '+email:'')+'\n';
   var fecha=new Date().toLocaleString('es-AR');
   var confTbody=document.getElementById('conf-tbody'); confTbody.innerHTML='';
 
@@ -362,7 +379,7 @@ document.getElementById('btnEnviarPedido').addEventListener('click', function() 
     var tr=document.createElement('tr');
     tr.innerHTML='<td><strong>'+p.nombre+'</strong>'+(p.talle?'<span class="res-talle-badge">'+talleVal+'</span>':'')+'</td><td style="text-align:center;color:var(--muted);">'+qty+'</td><td>$'+sub.toLocaleString('es-AR')+'</td>';
     confTbody.appendChild(tr);
-    filas.push({fecha:fecha,nombre:nombre,producto:p.nombre,talle:talleVal,cantidad:qty,precio:p.precio,subtotal:sub,total:total});
+    filas.push({fecha:fecha,nombre:nombre,telefono:telefono,email:email,producto:p.nombre,talle:talleVal,cantidad:qty,precio:p.precio,subtotal:sub,total:total});
   });
 
   waMsg+='\n\nTOTAL: $'+total.toLocaleString('es-AR');
@@ -390,6 +407,8 @@ document.getElementById('btnEnviarPedido').addEventListener('click', function() 
 
 document.getElementById('btnNuevoPedido').addEventListener('click', function(){
   document.getElementById('nombre').value='';
+  document.getElementById('telefono').value='';
+  document.getElementById('email').value='';
   PRODUCTOS.forEach(function(p){
     document.getElementById('row-'+p.id).classList.remove('checked');
     document.getElementById('detail-'+p.id).classList.remove('visible');

@@ -29,7 +29,7 @@ var HOJA_GESTION = 'Gestion';  // se crea sola si no existe
 var HOJA_PRENDAS = 'Prendas';  // debe existir
 var HOJA_ATLETAS = 'Atletas';  // se crea sola si no existe
 
-var COLS_PEDIDO  = ['fecha','nombre','producto','talle','cantidad','precio','subtotal','total'];
+var COLS_PEDIDO  = ['fecha','nombre','producto','talle','cantidad','precio','subtotal','total','telefono','email'];
 var COLS_GESTION = ['key','alumno_id','alumno','telefono','pagado','medio','fecha_pago','entrega','notas','actualizado'];
 var COLS_PRENDAS = ['proveedor','prenda','costo','precio de venta','talles'];
 var COLS_ATLETAS = ['id','apellido','nombre','telefono','profe','activo'];
@@ -81,7 +81,15 @@ function hojaPedidos() {
   var s = ss();
   var h = HOJA_PEDIDOS ? s.getSheetByName(HOJA_PEDIDOS) : s.getSheets()[0];
   if (!h) throw new Error('No existe la hoja de pedidos "' + HOJA_PEDIDOS + '"');
-  if (h.getLastRow() === 0) h.appendRow(COLS_PEDIDO);
+  if (h.getLastRow() === 0) { h.appendRow(COLS_PEDIDO); h.setFrozenRows(1); return h; }
+  // Agregar columnas faltantes al encabezado existente (ej: telefono, email)
+  var hdr = encabezados(h);
+  COLS_PEDIDO.forEach(function(col) {
+    if (hdr.indexOf(col) === -1) {
+      var lastCol = h.getLastColumn();
+      h.getRange(1, lastCol + 1).setValue(col);
+    }
+  });
   return h;
 }
 
