@@ -400,8 +400,14 @@ const CFG_KEYS={gas:'ind_gas_url',clave:'ind_clave',be:'ind_be_url',email:'ind_e
 function cfg(k,def){ const v=localStorage.getItem(CFG_KEYS[k]); return (v==null||v==='')?def:v; }
 // Si la URL guardada es la deployment vieja (sin getPrendas), la reemplazamos por la nueva
 const URL_VIEJA='https://script.google.com/macros/s/AKfycbyJO2EK';
-(function(){ const g=localStorage.getItem(CFG_KEYS.gas)||''; if(g.startsWith(URL_VIEJA)||g==='') { localStorage.setItem(CFG_KEYS.gas,DEF_GAS); } })();
-let GAS_URL=cfg('gas',DEF_GAS), CLAVE=cfg('clave',''), BE_URL=cfg('be',DEF_BE);
+(function(){
+  const g=localStorage.getItem(CFG_KEYS.gas)||'';
+  if(g.startsWith(URL_VIEJA)||g==='') { localStorage.setItem(CFG_KEYS.gas,DEF_GAS); }
+  const c=localStorage.getItem(CFG_KEYS.clave)||'';
+  if(c==='') { localStorage.setItem(CFG_KEYS.clave,DEF_CLAVE); }
+})();
+const DEF_CLAVE='n3w3r4.2026';
+let GAS_URL=cfg('gas',DEF_GAS), CLAVE=cfg('clave',DEF_CLAVE), BE_URL=cfg('be',DEF_BE);
 let TOKEN=localStorage.getItem('ind_token')||localStorage.getItem('tpt_token')||'';
 const ALIAS=()=>cfg('alias','triatlon.para.todos');
 const SENA_PCT=()=>parseFloat(cfg('sena','50'))||0;
@@ -1246,7 +1252,7 @@ function iniciarApp(){
   document.querySelectorAll('[data-i18n-ph]').forEach(e=>{ e.placeholder=t(e.dataset.i18nPh); });
   $('sena-pct-lbl').textContent=SENA_PCT();
   document.querySelectorAll('.sena-pct2').forEach(e=>e.textContent=SENA_PCT());
-  if(!CLAVE){ sp('config',null); toast(t('t_cfginicial')); renderTodo(); return; }
+  if(!GAS_URL){ sp('config',null); toast(t('t_cfginicial')); renderTodo(); return; }
   cargarTodo();
 }
 window.addEventListener('DOMContentLoaded',()=>{
