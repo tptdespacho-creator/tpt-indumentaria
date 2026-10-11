@@ -1256,7 +1256,7 @@ function guardarConfig(){
   localStorage.setItem(CFG_KEYS.gas,GAS_URL); localStorage.setItem(CFG_KEYS.clave,CLAVE); localStorage.setItem(CFG_KEYS.be,BE_URL); localStorage.setItem(CFG_KEYS.email,$('cfg-email').value.trim());
   localStorage.setItem(CFG_KEYS.alias,$('cfg-alias').value.trim()); localStorage.setItem(CFG_KEYS.sena,$('cfg-sena').value);
   localStorage.setItem(CFG_KEYS.tconf,$('cfg-t-conf').value); localStorage.setItem(CFG_KEYS.tsaldo,$('cfg-t-saldo').value); localStorage.setItem(CFG_KEYS.tlista,$('cfg-t-lista').value);
-  $('sena-pct-lbl').textContent=SENA_PCT(); toast(t('t_cfgok')); cargarTodo();
+  const slbl2=$('sena-pct-lbl'); if(slbl2) slbl2.textContent=SENA_PCT(); toast(t('t_cfgok')); cargarTodo();
 }
 function restaurarPlantillas(){ $('cfg-t-conf').value=PLANTILLAS.conf; $('cfg-t-saldo').value=PLANTILLAS.saldo; $('cfg-t-lista').value=PLANTILLAS.lista; }
 
@@ -1315,9 +1315,9 @@ function cerrarSesion(){ localStorage.removeItem(LOGIN_KEY); location.reload(); 
 // ═══════════════════════════ INICIO ═══════════════════════════
 function iniciarApp(){
   const sel=$('sel-idioma'); if(sel) sel.value=IDIOMA;
-  document.querySelectorAll('[data-i18n]').forEach(e=>{ e.textContent=t(e.dataset.i18n); });
+  document.querySelectorAll('[data-i18n]').forEach(e=>{ const v=t(e.dataset.i18n); if(/<[a-z]/i.test(v)) e.innerHTML=v; else e.textContent=v; });
   document.querySelectorAll('[data-i18n-ph]').forEach(e=>{ e.placeholder=t(e.dataset.i18nPh); });
-  $('sena-pct-lbl').textContent=SENA_PCT();
+  const slbl=$('sena-pct-lbl'); if(slbl) slbl.textContent=SENA_PCT();
   document.querySelectorAll('.sena-pct2').forEach(e=>e.textContent=SENA_PCT());
   if(!GAS_URL){ sp('config',null); toast(t('t_cfginicial')); renderTodo(); return; }
   cargarTodo();
