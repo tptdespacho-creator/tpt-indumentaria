@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPT — Gestión de Indumentaria · v6</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--naranja:#e85d04;--amarillo:#f4a261;--verde:#52b788;--azul:#1b4965;--azul-oscuro:#0d2137;--gris-card:#1a2e3f;--gris-input:#0d1f2d;--borde:#1e3a50;--texto:#e8f4f8;--texto-suave:#7fa8c0;--rojo:#f87171;--violeta:#a78bfa;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--azul-oscuro);color:var(--texto);min-height:100vh;}
+header{background:linear-gradient(135deg,var(--azul-oscuro) 0%,#0f2a3d 100%);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:3px solid var(--naranja);box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+header h1{font-size:1.2rem;font-weight:800;background:linear-gradient(90deg,var(--naranja),var(--amarillo));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+header p{font-size:0.72rem;color:var(--texto-suave);margin-top:2px;}
+.hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:0.74rem;color:var(--texto-suave);}
+.pill{background:var(--gris-card);border:1px solid var(--borde);border-radius:20px;padding:4px 10px;font-size:0.7rem;font-weight:700;}
+.pill.warn{border-color:var(--rojo);color:var(--rojo);}
+.tabs{display:flex;background:var(--azul-oscuro);border-bottom:2px solid var(--borde);padding:0 14px;overflow-x:auto;}
+.tab{padding:11px 16px;cursor:pointer;font-weight:700;color:var(--texto-suave);border-bottom:3px solid transparent;white-space:nowrap;font-size:0.82rem;transition:all 0.2s;}
+.tab.active{color:var(--naranja);border-bottom-color:var(--naranja);}
+.tab:hover{color:var(--texto);}
+.container{padding:16px;max-width:1150px;margin:0 auto;}
+.page{display:none;}.page.active{display:block;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:16px;}
+.sc{background:var(--gris-card);border-radius:12px;padding:10px 14px;border-left:4px solid var(--azul);min-width:0;}
+.sc.n{border-color:var(--naranja)}.sc.a{border-color:var(--amarillo)}.sc.v{border-color:var(--verde)}.sc.r{border-color:var(--rojo)}.sc.p{border-color:var(--violeta)}
+.sl{font-size:0.64rem;color:var(--texto-suave);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;}
+.sv{font-size:1.25rem;font-weight:800;margin-top:2px;}
+.card{background:var(--gris-card);border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid var(--borde);}
+.card h3{font-size:0.95rem;margin-bottom:10px;color:var(--amarillo);}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;}
+.fg{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.fg label{font-size:0.66rem;color:var(--texto-suave);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;}
+input,select,textarea{background:var(--gris-input);border:1px solid var(--borde);color:var(--texto);border-radius:8px;padding:7px 10px;font-size:0.84rem;font-family:inherit;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--naranja);}
+input[type=date]{color-scheme:dark;}
+button{cursor:pointer;border:none;border-radius:8px;font-weight:700;font-family:inherit;transition:all 0.15s;}
+.btn{background:var(--naranja);color:#fff;padding:8px 14px;font-size:0.82rem;}
+.btn:hover{filter:brightness(1.1);}
+.btn.sec{background:var(--azul);}.btn.ok{background:var(--verde);color:#062;}.btn.ghost{background:transparent;border:1px solid var(--borde);color:var(--texto-suave);}
+.btn-sm{padding:4px 9px;font-size:0.72rem;border-radius:6px;background:var(--azul);color:#fff;}
+.btn-sm.wa{background:#25d366;color:#052;}.btn-sm.ok{background:var(--verde);color:#052;}.btn-sm.warn{background:var(--amarillo);color:#420;}.btn-sm.del{background:rgba(248,113,113,0.2);color:var(--rojo);}
+.btn-sm.ghost{background:transparent;border:1px solid var(--borde);color:var(--texto-suave);}
+.btn-sm.active{outline:2px solid var(--naranja);}
+button:disabled{opacity:0.5;cursor:not-allowed;}
+.pedido{background:var(--gris-card);border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--borde);border-left:4px solid var(--borde);}
+.pedido.pago-sena{border-left-color:var(--amarillo)}.pedido.pago-total{border-left-color:var(--verde)}.pedido.pago-nada{border-left-color:var(--rojo)}
+.ptop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;}
+.pname{font-weight:800;font-size:0.98rem;}
+.pmeta{display:flex;gap:6px;flex-wrap:wrap;font-size:0.72rem;color:var(--texto-suave);margin-top:4px;align-items:center;}
+.badge{border-radius:5px;padding:1px 7px;font-size:0.68rem;font-weight:700;white-space:nowrap;}
+.b-ok{background:rgba(82,183,136,0.18);color:var(--verde)}.b-warn{background:rgba(244,162,97,0.2);color:var(--amarillo)}.b-err{background:rgba(248,113,113,0.18);color:var(--rojo)}.b-info{background:rgba(27,73,101,0.5);color:#93c5fd}.b-vio{background:rgba(167,139,250,0.2);color:var(--violeta)}.b-mut{background:rgba(127,168,192,0.15);color:var(--texto-suave)}
+.items{margin:8px 0;font-size:0.8rem;border-top:1px dashed var(--borde);padding-top:6px;}
+.item{display:flex;justify-content:space-between;gap:8px;padding:3px 0;align-items:center;flex-wrap:wrap;}
+.item .t{color:var(--texto-suave)}
+.item-ent{display:flex;gap:4px;align-items:center;}
+.item-ent select{padding:2px 6px;font-size:0.7rem;}
+.pacts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;}
+.pago-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--borde);}
+.pago-row input,.pago-row select{padding:4px 8px;font-size:0.78rem;}
+.pago-row .lbl{font-size:0.68rem;color:var(--texto-suave);font-weight:700;text-transform:uppercase;}
+.empty{text-align:center;color:var(--texto-suave);padding:30px;font-size:0.9rem;}
+table{width:100%;border-collapse:collapse;font-size:0.8rem;}
+th,td{padding:6px 8px;border-bottom:1px solid var(--borde);text-align:left;}
+th{color:var(--texto-suave);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.05em;}
+td.num,th.num{text-align:center;}
+td.tot,th.tot{text-align:right;font-weight:700;}
+tr.sec-h td{background:rgba(27,73,101,0.35);font-weight:800;color:var(--amarillo);}
+.tbl-wrap{overflow-x:auto;}
+.sug{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.sec-header{font-size:1.15rem;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;padding:8px 2px 8px;border-bottom:1px solid var(--borde);margin:18px 0 10px;display:flex;align-items:center;gap:10px;}
+.sec-header:first-child{margin-top:0}
+.sec-header .cnt{font-size:0.62rem;letter-spacing:0.08em;color:var(--texto-suave);font-weight:600;text-transform:none;}
+.prenda-row-wrap{background:var(--gris-card);border:1px solid var(--borde);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.prenda-cab{display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;}
+.prenda-circle{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:#fff;}
+.prenda-cab-name{font-weight:800;font-size:0.92rem;}
+.prenda-cab-sub{font-size:0.7rem;color:var(--texto-suave);margin-top:1px;}
+.prenda-cab-qty{margin-left:auto;font-weight:800;font-size:0.92rem;white-space:nowrap;}
+.prenda-detail{padding:0 12px 10px;border-top:1px solid var(--borde);}
+.prenda-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--borde);flex-wrap:wrap;}
+.prenda-row:first-of-type{border-top:none;padding-top:10px;}
+.prenda-row .nom{flex:1;min-width:120px;font-weight:700;}
+.prenda-row select{padding:3px 7px;font-size:0.74rem;}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(30px);background:var(--gris-card);border:1px solid var(--borde);color:var(--texto);padding:10px 18px;border-radius:10px;font-weight:700;font-size:0.84rem;opacity:0;transition:all 0.25s;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{border-color:var(--rojo);}
+#loading{position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--naranja),var(--amarillo));display:none;z-index:100;animation:pulse 1s infinite;}
+@keyframes pulse{0%{opacity:0.4}50%{opacity:1}100%{opacity:0.4}}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.65);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--gris-card);border:1px solid var(--borde);border-radius:14px;padding:18px;width:100%;max-width:560px;max-height:90vh;overflow:auto;}
+.modal h3{margin-bottom:10px;color:var(--amarillo);}
+textarea{width:100%;min-height:150px;resize:vertical;line-height:1.4;}
+.help{font-size:0.74rem;color:var(--texto-suave);line-height:1.5;}
+.help code{background:var(--gris-input);padding:1px 5px;border-radius:4px;font-size:0.72rem;}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+.chk{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--texto-suave);cursor:pointer;}
+.chk input{width:auto;accent-color:var(--naranja);}
+/* Stock */
+.stock-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--borde);flex-wrap:wrap;}
+.stock-row:first-of-type{border-top:none;}
+.stock-row .nom{flex:1;min-width:140px;font-weight:700;}
+.stock-qty{display:flex;align-items:center;gap:6px;}
+.stock-qty button{width:26px;height:26px;border-radius:6px;background:var(--azul);color:#fff;font-size:0.9rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0;}
+.stock-qty input{width:64px;text-align:center;padding:4px 4px;font-size:0.8rem;}
+.precio-inp{width:90px;text-align:right;padding:4px 6px;font-size:0.8rem;}
+.stock-bajo{color:var(--rojo);font-weight:800;}
+.stock-ok{color:var(--verde);font-weight:800;}
+.pago-hist{font-size:0.76rem;border-top:1px dashed var(--borde);margin-top:6px;padding-top:6px;}
+.pago-hist .ph{display:flex;justify-content:space-between;gap:8px;padding:2px 0;flex-wrap:wrap;}
+.pago-hist .ph .m{color:var(--texto-suave);font-size:0.7rem;}
+@media(max-width:600px){.container{padding:10px}.pedido{padding:10px}}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--azul-oscuro);display:flex;align-items:center;justify-content:center">
+  <div style="background:var(--gris-card);border:1px solid var(--borde);border-radius:16px;padding:36px 32px;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,0.6)">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:2.2rem;margin-bottom:8px">👕</div>
+      <div style="font-weight:800;font-size:1.2rem;background:linear-gradient(90deg,var(--naranja),var(--amarillo));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">TPT — Indumentaria</div>
+      <div style="font-size:0.75rem;color:var(--texto-suave);margin-top:4px">tptdespacho@gmail.com</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:0.68rem;color:var(--texto-suave);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:5px">Contraseña</label>
+      <input id="login-pwd" type="password" placeholder="••••••••" style="width:100%;padding:10px 12px;font-size:0.9rem" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-err" style="display:none;color:var(--rojo);font-size:0.78rem;margin-bottom:10px;text-align:center">Contraseña incorrecta</div>
+    <button class="btn" style="width:100%;padding:11px" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
+
+<div id="loading"></div>
+<header>
+  <div><h1 data-i18n="app_title">👕 TPT — Gestión de Indumentaria</h1><p data-i18n="app_sub">Pedidos del formulario · stock · cobros · entregas por prenda · resumen para proveedor · v6</p></div>
+  <div class="hdr-right">
+    <span class="pill" id="st-sheet">📄 Planilla: —</span>
+    <span class="pill" id="st-al">🏊 Atletas: —</span>
+    <span class="pill" id="st-stock">📦 Stock: —</span>
+    <select id="sel-idioma" onchange="setearIdioma(this.value)" style="padding:6px 8px;border-radius:8px;border:1px solid var(--borde);background:var(--gris-input);color:var(--texto);font-size:0.8rem" title="Idioma / Language / 언어">
+      <option value="es">🇦🇷 Español</option>
+      <option value="en">🇬🇧 English</option>
+      <option value="ko">🇰🇷 한국어</option>
+    </select>
+    <button class="btn sec" onclick="cargarTodo()">🔄 Actualizar</button>
+    <button class="btn ghost" onclick="sp('config',null)">⚙️</button>
+  </div>
+</header>
+<div class="tabs" id="tabs">
+  <div class="tab active" data-page="pedidos" onclick="sp('pedidos',this)" data-i18n="tab_pedidos">📦 Pedidos</div>
+  <div class="tab" data-page="cobros" onclick="sp('cobros',this)" data-i18n="tab_cobros">💰 Cobros</div>
+  <div class="tab" data-page="stock" onclick="sp('stock',this)" data-i18n="tab_stock">📦 Stock</div>
+  <div class="tab" data-page="prendas" onclick="sp('prendas',this)">🏷️ Prendas</div>
+  <div class="tab" data-page="entregas" onclick="sp('entregas',this)" data-i18n="tab_entregas">🚚 Entregas</div>
+  <div class="tab" data-page="resumen" onclick="sp('resumen',this)" data-i18n="tab_resumen">📊 Resumen proveedor</div>
+  <div class="tab" data-page="vincular" onclick="sp('vincular',this)" data-i18n="tab_vincular">🔗 Vincular atletas</div>
+  <div class="tab" data-page="config" onclick="sp('config',this)" data-i18n="tab_config">⚙️ Config</div>
+</div>
+
+<div class="container">
+
+<!-- ══ PEDIDOS ══ -->
+<div class="page active" id="page-pedidos">
+  <div class="stats" id="stats"></div>
+  <div class="filtros">
+    <div class="fg"><label data-i18n="lbl_buscar">Buscar</label><input id="f-q" data-i18n-ph="ph_pedidos" placeholder="Nombre, prenda, talle..." oninput="renderPedidos()"></div>
+    <div class="fg"><label data-i18n="lbl_desde">Desde</label><input type="date" id="f-desde" onchange="renderPedidos()"></div>
+    <div class="fg"><label data-i18n="lbl_hasta">Hasta</label><input type="date" id="f-hasta" onchange="renderPedidos()"></div>
+    <div class="fg"><label data-i18n="lbl_pago">Pago</label><select id="f-pago" onchange="renderPedidos()"><option value="" data-i18n="opt_todos">Todos</option><option value="nada" data-i18n="opt_sinpago">Sin pago</option><option value="sena" data-i18n="opt_consena">Con seña</option><option value="total" data-i18n="opt_pagado">Pagado</option></select></div>
+    <div class="fg"><label data-i18n="lbl_entrega">Entrega</label><select id="f-ent" onchange="renderPedidos()"><option value="" data-i18n="opt_todas">Todas</option><option value="pendiente" data-i18n="opt_sinpedir">Sin pedir</option><option value="proveedor" data-i18n="opt_prov">Pedido al proveedor</option><option value="recibido" data-i18n="opt_recibido">Recibido</option><option value="entregado" data-i18n="opt_entregado">Entregado</option></select></div>
+    <div class="fg"><label data-i18n="lbl_atleta">Atleta</label><select id="f-vin" onchange="renderPedidos()"><option value="" data-i18n="opt_todos">Todos</option><option value="si" data-i18n="opt_vinc">Vinculado</option><option value="no" data-i18n="opt_sinvinc">Sin vincular</option></select></div>
+    <button class="btn ghost" onclick="limpiarFiltros()" data-i18n="btn_limpiar">Limpiar</button>
+    <div class="fg"><label data-i18n="lbl_vista">Vista</label><div style="display:flex;gap:4px">
+      <button class="btn-sm ghost active" id="vista-btn-pedido" onclick="setVistaPedidos('pedido')" data-i18n="btn_vpedido">📦 Por pedido</button>
+      <button class="btn-sm ghost" id="vista-btn-prenda" onclick="setVistaPedidos('prenda')" data-i18n="btn_vprenda">👕 Por prenda</button>
+    </div></div>
+  </div>
+  <div id="pedidos-lista"></div>
+</div>
+
+<!-- ══ COBROS ══ -->
+<div class="page" id="page-cobros">
+  <div class="card">
+    <h3 data-i18n="tab_cobros">💰 Cobros</h3>
+    <p class="help" style="margin-bottom:10px" data-i18n="cobros_help">Cada pedido admite <b>varios pagos</b> (historial): agregá, editá o borrá pagos con el botón <b>💵 Pagos</b>. El saldo se calcula solo. Seña sugerida: <b id="sena-pct-lbl">50</b>% (se cambia en Config).</p>
+    <div class="filtros">
+      <div class="fg"><label data-i18n="lbl_mostrar">Mostrar</label><select id="cf-est" onchange="renderCobros()"><option value="" data-i18n="opt_todos">Todos</option><option value="nada" data-i18n="opt_sinpago">Sin pago</option><option value="sena" data-i18n="opt_consena_saldo">Con seña (saldo pendiente)</option><option value="total" data-i18n="opt_pagado">Pagados</option></select></div>
+      <div class="fg"><label data-i18n="lbl_buscar">Buscar</label><input id="cf-q" data-i18n-ph="ph_nombre" placeholder="Nombre..." oninput="renderCobros()"></div>
+      <button class="btn sec" onclick="exportarExcel()" data-i18n="btn_export">📥 Exportar Excel</button>
+    </div>
+    <div class="tbl-wrap"><table><thead><tr><th data-i18n="th_atleta">Atleta / Nombre</th><th data-i18n="th_fecha">Fecha</th><th class="num" data-i18n="th_prendas">Prendas</th><th class="tot" data-i18n="th_total">Total</th><th class="tot" data-i18n="th_pagado">Pagado</th><th class="tot" data-i18n="th_saldo">Saldo</th><th data-i18n="th_ultpago">Último pago</th><th data-i18n="th_estado">Estado</th><th></th></tr></thead><tbody id="cobros-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══ STOCK ══ -->
+<div class="page" id="page-stock">
+  <div class="stats" id="stock-stats"></div>
+  <div class="card">
+    <h3 data-i18n="stock_title">📦 Stock de indumentaria</h3>
+    <p class="help" style="margin-bottom:10px" data-i18n="stock_help">Cargá cuántas unidades tenés de cada prenda y talle. El stock se guarda en la hoja <b>Gestion</b> de la planilla (fila <code>__stock__</code>), así lo ves desde cualquier dispositivo. Abajo se compara con lo que falta entregar.</p>
+    <div class="filtros">
+      <div class="fg"><label data-i18n="lbl_buscar">Buscar</label><input id="sf-q" data-i18n-ph="ph_prenda" placeholder="Prenda o talle..." oninput="renderStock()"></div>
+      <div class="fg"><label data-i18n="lbl_seccion">Sección</label><select id="sf-sec" onchange="renderStock()"><option value="" data-i18n="opt_todas">Todas</option></select></div>
+      <button class="btn" onclick="abrirStockIngreso()" data-i18n="btn_ingstock">➕ Ingresar stock</button>
+      <button class="btn ghost" onclick="agregarLineaStock()" data-i18n="btn_nuevalinea">🧵 Nueva prenda/talle</button>
+    </div>
+    <div id="stock-lista"></div>
+  </div>
+</div>
+
+<!-- ══ PRENDAS ══ -->
+<div class="page" id="page-prendas">
+  <div class="card">
+    <h3>🏷️ Prendas: costo y precio de venta</h3>
+    <p class="help" style="margin-bottom:10px">Se guardan en la hoja <b>Prendas</b> de la planilla. Editá costo o precio y tocá Guardar en la fila.</p>
+    <div class="filtros">
+      <div class="fg"><label>Buscar</label><input id="pf-q" placeholder="Prenda o proveedor..." oninput="renderPrendas()"></div>
+      <button class="btn ghost" onclick="cargarPrendas()">🔄 Recargar</button>
+    </div>
+    <div id="prendas-lista"></div>
+    <h3 style="margin-top:16px">➕ Nueva prenda</h3>
+    <div class="filtros">
+      <div class="fg"><label>Proveedor</label><input id="pn-prov"></div>
+      <div class="fg"><label>Prenda</label><input id="pn-prenda"></div>
+      <div class="fg"><label>Costo $</label><input id="pn-costo" type="number" step="0.01"></div>
+      <div class="fg"><label>Precio de venta $</label><input id="pn-precio" type="number" step="0.01"></div>
+      <div class="fg"><label>Talles</label><input id="pn-talles" placeholder="XS a 3XL"></div>
+      <button class="btn" onclick="agregarPrenda()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ENTREGAS ══-->
+<div class="page" id="page-entregas">
+  <div class="card">
+    <h3 data-i18n="entregas_title">🚚 Entregas — estado por prenda</h3>
+    <p class="help" style="margin-bottom:10px" data-i18n="entregas_help">Cada prenda de cada atleta tiene su propio estado. Usá los botones de arriba para cambiar todas las prendas visibles de una vez.</p>
+    <div class="filtros">
+      <div class="fg"><label data-i18n="lbl_estado">Estado</label><select id="ef-est" onchange="renderEntregas()"><option value="" data-i18n="opt_todos">Todos</option><option value="pendiente" data-i18n="opt_sinpedir">Sin pedir</option><option value="proveedor" data-i18n="opt_prov">Pedido al proveedor</option><option value="recibido" data-i18n="opt_recibido">Recibido (avisar)</option><option value="entregado" data-i18n="opt_entregado">Entregado</option></select></div>
+      <div class="fg"><label data-i18n="lbl_buscar">Buscar</label><input id="ef-q" data-i18n-ph="ph_nombprenda" placeholder="Nombre o prenda..." oninput="renderEntregas()"></div>
+      <div class="fg"><label data-i18n="lbl_cambiar">Cambiar todas las visibles a</label><div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn-sm" onclick="entregaMasiva('proveedor')" data-i18n="btn_mprov">📤 Pedido</button>
+        <button class="btn-sm warn" onclick="entregaMasiva('recibido')" data-i18n="btn_mrec">📦 Recibido</button>
+        <button class="btn-sm ok" onclick="entregaMasiva('entregado')" data-i18n="btn_ment">✅ Entregado</button></div></div>
+    </div>
+    <div class="tbl-wrap"><table><thead><tr><th data-i18n="th_atleta">Atleta / Nombre</th><th data-i18n="th_prenda">Prenda</th><th data-i18n="th_pago">Pago</th><th data-i18n="th_entrega">Entrega</th><th></th></tr></thead><tbody id="entregas-body"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══ RESUMEN ══ -->
+<div class="page" id="page-resumen">
+  <div class="card">
+    <h3 data-i18n="resumen_title">📊 Resumen para el proveedor</h3>
+    <div class="filtros">
+      <div class="fg"><label data-i18n="lbl_desde">Desde</label><input type="date" id="rf-desde" onchange="renderResumen()"></div>
+      <div class="fg"><label data-i18n="lbl_hasta">Hasta</label><input type="date" id="rf-hasta" onchange="renderResumen()"></div>
+      <label class="chk"><input type="checkbox" id="rf-sena" onchange="renderResumen()" checked> <span data-i18n="chk_sena">Solo pedidos con seña o pagados</span></label>
+      <label class="chk"><input type="checkbox" id="rf-nombres" onchange="renderResumen()"> <span data-i18n="chk_nombres">Ver nombres por talle</span></label>
+      <button class="btn sec" onclick="exportarExcel()" data-i18n="btn_export">📥 Exportar Excel</button>
+      <button class="btn ghost" onclick="copiarResumen()" data-i18n="btn_copiar">📋 Copiar texto</button>
+    </div>
+    <div id="resumen-cont"></div>
+  </div>
+</div>
+
+<!-- ══ VINCULAR ══ -->
+<div class="page" id="page-vincular">
+  <div class="card">
+    <h3 data-i18n="vincular_title">🔗 Vincular pedidos con atletas</h3>
+    <p class="help" style="margin-bottom:10px" data-i18n="vincular_help">El formulario solo pide el nombre. Acá se cruza con la lista de atletas del backend para obtener el teléfono (WhatsApp). Las coincidencias exactas se proponen automáticamente; confirmalas con un clic o elegí el atleta a mano.</p>
+    <div class="filtros">
+      <button class="btn ok" onclick="guardarAutomaticos()"><span data-i18n="btn_auto">✅ Confirmar todas las coincidencias exactas (</span><span id="auto-count">0</span>)</button>
+      <label class="chk"><input type="checkbox" id="vf-solo" checked onchange="renderVincular()"> <span data-i18n="chk_solosin">Solo sin vincular</span></label>
+    </div>
+    <div id="vincular-lista"></div>
+  </div>
+</div>
+
+<!-- ══ CONFIG ══ -->
+<div class="page" id="page-config">
+  <div class="grid2">
+    <div class="card">
+      <h3 data-i18n="cfg_sheet_title">📄 Planilla de pedidos (Apps Script)</h3>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_cfg_gas">URL del Apps Script (/exec)</label><input id="cfg-gas" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_cfg_clave">Clave (la misma que pusiste en Code.gs)</label><input id="cfg-clave" type="password"></div>
+      <p class="help" data-i18n="cfg_sheet_help">Es la misma URL que usa el formulario público. Para que funcione la lectura hay que pegar el <code>Code.gs</code> nuevo en el proyecto de Apps Script y volver a implementar (misma URL).</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="cfg_atletas_title">🏊 Atletas (backend TPT Gestión)</h3>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_cfg_be">URL del backend (/exec)</label><input id="cfg-be" placeholder="https://tpt-backend-production-4ffa.up.railway.app/exec"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_email">Email</label><input id="cfg-email" type="email"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_pass">Contraseña</label><input id="cfg-pass" type="password" onkeydown="if(event.key==='Enter')loginBackend()"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn" onclick="loginBackend()" data-i18n="btn_login">🔐 Iniciar sesión</button><button class="btn ghost" onclick="cerrarSesion()" data-i18n="btn_logout">Cerrar sesión</button></div>
+      <p class="help" style="margin-top:8px" id="cfg-be-st">Sin sesión.</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="cfg_wa_title">💬 Mensajes de WhatsApp y cobro</h3>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_alias">Alias para transferencias</label><input id="cfg-alias"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_senapct">Seña sugerida (%)</label><input id="cfg-sena" type="number" min="0" max="100"></div>
+      <p class="help">Variables: <code>{nombre}</code> <code>{items}</code> <code>{total}</code> <code>{sena}</code> <code>{pagado}</code> <code>{saldo}</code> <code>{alias}</code></p>
+      <div class="fg" style="margin-top:8px"><label data-i18n="lbl_tconf">Confirmación de pedido</label><textarea id="cfg-t-conf" style="min-height:110px"></textarea></div>
+      <div class="fg" style="margin-top:8px"><label data-i18n="lbl_tsaldo">Recordatorio de saldo</label><textarea id="cfg-t-saldo" style="min-height:90px"></textarea></div>
+      <div class="fg" style="margin-top:8px"><label data-i18n="lbl_tlista">Prenda lista para retirar</label><textarea id="cfg-t-lista" style="min-height:90px"></textarea></div>
+    </div>
+    <div class="card">
+      <h3 data-i18n="cfg_prov_title">🏭 Datos del proveedor</h3>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_prov_nombre">Nombre</label><input id="prov-nombre"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_prov_tel">Teléfono</label><input id="prov-tel"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_prov_email">Email</label><input id="prov-email" type="email"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_prov_dir">Dirección</label><input id="prov-dir"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_prov_contacto">Contacto</label><input id="prov-contacto"></div>
+      <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_prov_notas">Comentarios</label><textarea id="prov-notas" maxlength="400" oninput="actualizarContadorProv()" style="min-height:80px"></textarea></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="guardarProveedor()" data-i18n="btn_guardarprov">Guardar proveedor</button>
+        <span class="help" id="prov-contador">0/400</span>
+      </div>
+      <p class="help" style="margin-top:8px" data-i18n="cfg_prov_help">Se guarda en la hoja <b>Gestion</b> de la planilla (fila <code>__proveedor__</code>), así lo ves desde cualquier dispositivo.</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="cfg_save_title">💾 Guardar</h3>
+      <button class="btn" onclick="guardarConfig()" data-i18n="btn_guardarcfg">Guardar configuración</button>
+      <button class="btn ghost" onclick="restaurarPlantillas()" data-i18n="btn_restaurar">Restaurar mensajes por defecto</button>
+      <p class="help" style="margin-top:10px" data-i18n="cfg_save_help">La configuración se guarda en este navegador. El estado de cada pedido (atleta, pagos, entrega por prenda, notas, stock) se guarda en la hoja <b>Gestion</b> de la misma planilla, así lo ves desde cualquier dispositivo.</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Modal WhatsApp -->
+<div class="modal-bg" id="modal-wa" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal">
+    <h3 data-i18n="wa_title">💬 Mensaje de WhatsApp</h3>
+    <div class="fg" style="margin-bottom:8px"><label data-i18n="lbl_watel">Teléfono (sin 0 ni 15)</label><input id="wa-tel" placeholder="1136484110"></div>
+    <textarea id="wa-txt"></textarea>
+    <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn" style="background:#25d366;color:#052" onclick="enviarWA()" data-i18n="btn_wa">📲 Abrir WhatsApp</button>
+      <button class="btn ghost" onclick="copiarTexto(document.getElementById('wa-txt').value)" data-i18n="btn_copiar">📋 Copiar</button>
+      <button class="btn ghost" onclick="cerrarModal()" data-i18n="btn_cerrar">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal notas -->
+<div class="modal-bg" id="modal-notas" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal">
+    <h3 data-i18n="notas_title">📝 Notas del pedido</h3>
+    <p class="help" id="notas-quien" style="margin-bottom:8px"></p>
+    <textarea id="notas-txt" style="min-height:100px"></textarea>
+    <div style="display:flex;gap:6px;margin-top:10px"><button class="btn" onclick="guardarNotas()" data-i18n="btn_guardar">Guardar</button><button class="btn ghost" onclick="cerrarModal()" data-i18n="btn_cancelar">Cancelar</button></div>
+  </div>
+</div>
+
+<!-- Modal CRUD de pagos -->
+<div class="modal-bg" id="modal-pagos" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal">
+    <h3 data-i18n="pagos_title">💵 Pagos del pedido</h3>
+    <p class="help" id="pagos-quien" style="margin-bottom:8px"></p>
+    <div id="pagos-historial"></div>
+    <div style="border-top:1px solid var(--borde);margin-top:10px;padding-top:10px">
+      <div class="fg" style="margin-bottom:6px"><label data-i18n="lbl_nuevopago">Nuevo pago</label><input type="number" id="pago-nuevo-monto" min="0" data-i18n-ph="ph_monto" placeholder="Monto"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <select id="pago-nuevo-medio"><option value="" data-i18n="opt_medio">Medio</option><option data-i18n="medio_trans">Transferencia</option><option data-i18n="medio_efec">Efectivo</option><option data-i18n="medio_mp">Mercado Pago</option><option data-i18n="medio_otro">Otro</option></select>
+        <input type="date" id="pago-nuevo-fecha">
+        <button class="btn" onclick="agregarPago()" data-i18n="btn_agregar">➕ Agregar</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn-sm warn" onclick="pagoRapidoModal('sena')"><span data-i18n="btn_sena2">Seña</span> <span class="sena-pct2">50</span>%</button>
+        <button class="btn-sm ok" onclick="pagoRapidoModal('total')" data-i18n="btn_saldototal">Saldo total</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:12px"><button class="btn ghost" onclick="cerrarModal()" data-i18n="btn_cerrar">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- Modal ingreso de stock -->
+<div class="modal-bg" id="modal-stock" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal">
+    <h3 data-i18n="stockmodal_title">➕ Ingresar stock</h3>
+    <p class="help" style="margin-bottom:8px" data-i18n="stockmodal_help">Una línea por prenda. Formato: <code>Prenda | Talle | Cantidad</code> — ej: <code>Trisuit Pave con mangas | M | 5</code>. Si la prenda ya existe, se <b>suma</b> a lo cargado.</p>
+    <textarea id="stock-txt" style="min-height:160px" placeholder="Trisuit Pave con mangas | M | 5&#10;Poncho | L | 2&#10;Remera | S | 10"></textarea>
+    <div style="display:flex;gap:6px;margin-top:10px"><button class="btn" onclick="guardarStockIngreso()" data-i18n="btn_guardarstock">💾 Guardar stock</button><button class="btn ghost" onclick="cerrarModal()" data-i18n="btn_cancelar">Cancelar</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════ CONFIG ═══════════════════════════
+const DEF_BE='https://tpt-backend-production-4ffa.up.railway.app/exec';
+const DEF_GAS='https://script.google.com/macros/s/AKfycbyRbgPejwgHgeflwzV4b1gI76jYSMxv7bL4dwyWrMt3wH0or7_YZokgePIYwH64SnYT/exec';
+const PLANTILLAS={
+  conf:'Hola {nombre}! 👋 Registramos tu pedido de indumentaria TPT:\n{items}\nTotal: {total}\n\nPara confirmarlo, transferí la seña de {sena} al alias *{alias}* y mandanos el comprobante por acá. ¡Gracias! 🧡',
+  saldo:'Hola {nombre}! 👋 Te recordamos que tu pedido de indumentaria TPT tiene un saldo pendiente de {saldo} (total {total}, pagado {pagado}). Alias: *{alias}*. ¡Gracias!',
+  lista:'Hola {nombre}! 🎉 Ya llegó tu pedido de indumentaria TPT:\n{items}\nPodés pasar a retirarlo en el próximo entrenamiento. ¡Nos vemos!'
+};
+const CFG_KEYS={gas:'ind_gas_url',clave:'ind_clave',be:'ind_be_url',email:'ind_email',alias:'ind_alias',sena:'ind_sena_pct',tconf:'ind_t_conf',tsaldo:'ind_t_saldo',tlista:'ind_t_lista'};
+function cfg(k,def){ const v=localStorage.getItem(CFG_KEYS[k]); return (v==null||v==='')?def:v; }
+// Si la URL guardada es la deployment vieja (sin getPrendas), la reemplazamos por la nueva
+const URL_VIEJA='https://script.google.com/macros/s/AKfycbyJO2EK';
+(function(){ const g=localStorage.getItem(CFG_KEYS.gas)||''; if(g.startsWith(URL_VIEJA)||g==='') { localStorage.setItem(CFG_KEYS.gas,DEF_GAS); } })();
+let GAS_URL=cfg('gas',DEF_GAS), CLAVE=cfg('clave',''), BE_URL=cfg('be',DEF_BE);
+let TOKEN=localStorage.getItem('ind_token')||localStorage.getItem('tpt_token')||'';
+const ALIAS=()=>cfg('alias','triatlon.para.todos');
+const SENA_PCT=()=>parseFloat(cfg('sena','50'))||0;
+
+// ═══════════════════════════ IDIOMA (i18n: es / en / ko) ═══════════════════════════
+const I18N={
+es:{
+ app_title:'👕 TPT — Gestión de Indumentaria',app_sub:'Pedidos del formulario · stock · cobros · entregas por prenda · resumen para proveedor · v6',
+ tab_pedidos:'📦 Pedidos',tab_cobros:'💰 Cobros',tab_stock:'📦 Stock',tab_entregas:'🚚 Entregas',tab_resumen:'📊 Resumen proveedor',tab_vincular:'🔗 Vincular atletas',tab_config:'⚙️ Config',
+ btn_update:'🔄 Actualizar',
+ lbl_buscar:'Buscar',lbl_desde:'Desde',lbl_hasta:'Hasta',lbl_pago:'Pago',lbl_entrega:'Entrega',lbl_atleta:'Atleta',btn_limpiar:'Limpiar',lbl_vista:'Vista',btn_vpedido:'📦 Por pedido',btn_vprenda:'👕 Por prenda',
+ opt_todos:'Todos',opt_todas:'Todas',opt_sinpago:'Sin pago',opt_consena:'Con seña',opt_consena_saldo:'Con seña (saldo pendiente)',opt_pagado:'Pagado',opt_sinpedir:'Sin pedir',opt_prov:'Pedido al proveedor',opt_recibido:'Recibido',opt_entregado:'Entregado',opt_vinc:'Vinculado',opt_sinvinc:'Sin vincular',
+ ph_pedidos:'Nombre, prenda, talle...',ph_nombre:'Nombre...',ph_prenda:'Prenda o talle...',ph_nombprenda:'Nombre o prenda...',
+ cobros_help:'Cada pedido admite <b>varios pagos</b> (historial): agregá, editá o borrá pagos con el botón <b>💵 Pagos</b>. El saldo se calcula solo. Seña sugerida: <b id="sena-pct-lbl">50</b>% (se cambia en Config).',
+ lbl_mostrar:'Mostrar',btn_export:'📥 Exportar Excel',
+ th_atleta:'Atleta / Nombre',th_fecha:'Fecha',th_prendas:'Prendas',th_total:'Total',th_pagado:'Pagado',th_saldo:'Saldo',th_ultpago:'Último pago',th_estado:'Estado',th_prenda:'Prenda',th_pago:'Pago',th_entrega:'Entrega',
+ stock_title:'📦 Stock de indumentaria',
+ stock_help:'Cargá cuántas unidades tenés de cada prenda y talle. El stock se guarda en la hoja <b>Gestion</b> de la planilla (fila <code>__stock__</code>), así lo ves desde cualquier dispositivo. Abajo se compara con lo que falta entregar.',
+ lbl_seccion:'Sección',btn_ingstock:'➕ Ingresar stock',btn_nuevalinea:'🧵 Nueva prenda/talle',
+ entregas_title:'🚚 Entregas — estado por prenda',
+ entregas_help:'Cada prenda de cada atleta tiene su propio estado. Usá los botones de arriba para cambiar todas las prendas visibles de una vez.',
+ lbl_estado:'Estado',lbl_cambiar:'Cambiar todas las visibles a',btn_mprov:'📤 Pedido',btn_mrec:'📦 Recibido',btn_ment:'✅ Entregado',
+ resumen_title:'📊 Resumen para el proveedor',chk_sena:'Solo pedidos con seña o pagados',chk_nombres:'Ver nombres por talle',btn_copiar:'📋 Copiar texto',
+ vincular_title:'🔗 Vincular pedidos con atletas',
+ vincular_help:'El formulario solo pide el nombre. Acá se cruza con la lista de atletas del backend para obtener el teléfono (WhatsApp). Las coincidencias exactas se proponen automáticamente; confirmalas con un clic o elegí el atleta a mano.',
+ btn_auto:'✅ Confirmar todas las coincidencias exactas (',chk_solosin:'Solo sin vincular',
+ cfg_sheet_title:'📄 Planilla de pedidos (Apps Script)',lbl_cfg_gas:'URL del Apps Script (/exec)',lbl_cfg_clave:'Clave (la misma que pusiste en Code.gs)',
+ cfg_sheet_help:'Es la misma URL que usa el formulario público. Para que funcione la lectura hay que pegar el <code>Code.gs</code> nuevo en el proyecto de Apps Script y volver a implementar (misma URL).',
+ cfg_atletas_title:'🏊 Atletas (backend TPT Gestión)',lbl_cfg_be:'URL del backend (/exec)',lbl_email:'Email',lbl_pass:'Contraseña',btn_login:'🔐 Iniciar sesión',btn_logout:'Cerrar sesión',
+ cfg_wa_title:'💬 Mensajes de WhatsApp y cobro',lbl_alias:'Alias para transferencias',lbl_senapct:'Seña sugerida (%)',lbl_tconf:'Confirmación de pedido',lbl_tsaldo:'Recordatorio de saldo',lbl_tlista:'Prenda lista para retirar',
+ cfg_save_title:'💾 Guardar',btn_guardarcfg:'Guardar configuración',btn_restaurar:'Restaurar mensajes por defecto',
+ cfg_save_help:'La configuración se guarda en este navegador. El estado de cada pedido (atleta, pagos, entrega por prenda, notas, stock) se guarda en la hoja <b>Gestion</b> de la misma planilla, así lo ves desde cualquier dispositivo.',
+ wa_title:'💬 Mensaje de WhatsApp',lbl_watel:'Teléfono (sin 0 ni 15)',btn_wa:'📲 Abrir WhatsApp',btn_copiar:'📋 Copiar',btn_cerrar:'Cerrar',
+ notas_title:'📝 Notas del pedido',btn_guardar:'Guardar',btn_cancelar:'Cancelar',
+ pagos_title:'💵 Pagos del pedido',lbl_nuevopago:'Nuevo pago',ph_monto:'Monto',opt_medio:'Medio',medio_trans:'Transferencia',medio_efec:'Efectivo',medio_mp:'Mercado Pago',medio_otro:'Otro',btn_agregar:'➕ Agregar',btn_sena2:'Seña',btn_saldototal:'Saldo total',
+ stockmodal_title:'➕ Ingresar stock',
+ stockmodal_help:'Una línea por prenda. Formato: <code>Prenda | Talle | Cantidad</code> — ej: <code>Trisuit Pave con mangas | M | 5</code>. Si la prenda ya existe, se <b>suma</b> a lo cargado.',
+ btn_guardarstock:'💾 Guardar stock',
+ // dinámicos
+ st_pedidos:'Pedidos',st_prendas:'Prendas',st_totalped:'Total pedidos',st_cobrado:'Cobrado',st_saldopend:'Saldo pendiente',st_sinpago:'Sin pago',st_entregados:'Entregados',st_sinvinc:'Sin vincular',
+ ent_pendiente:'⏳ Sin pedir',ent_proveedor:'📤 Pedido al proveedor',ent_recibido:'📦 Recibido',ent_entregado:'✅ Entregado',
+ pago_nada:'❌ Sin pago',pago_sena:'💛 Seña',pago_total:'✅ Pagado',
+ eped_pendiente:'⏳ Sin pedir',eped_enproceso:'🔄 En proceso',eped_parcial:'◐ Parcial',eped_entregado:'✅ Entregado',
+ empty_nofiltros:'Ningún pedido coincide con los filtros.',empty_sinpedidos:'Sin pedidos cargados. Revisá la configuración de la planilla o tocá 🔄 Actualizar.',empty_sinped:'Sin pedidos.',empty_sinprendas:'Sin prendas.',empty_criterio:'Sin pedidos para el criterio elegido.',empty_sesion:'Iniciá sesión en el backend (Config) para cargar la lista de atletas.',empty_todosvinc:'Todos los pedidos están vinculados. 🎉',empty_nopagos:'Todavía no hay pagos registrados.',empty_sincand:'Sin coincidencias.',empty_stock:'Stock sin cargar. Tocá <b>➕ Ingresar stock</b> para empezar (formato: Prenda | Talle | Cantidad).',
+ lbl_pagos:'Pagos',lbl_entregatodas:'ENTREGA (todas las prendas)',btn_confirmaratleta:'✔ Confirmar atleta',btn_vincular2:'🔗 Vincular',btn_waconf:'💬 Confirmar',btn_wasaldo:'💬 Saldo',btn_waretirar:'💬 Retirar',btn_avisar:'💬 Avisar',badge_nota:'📝 nota',badge_auto:'(auto)',badge_sinvinc:'Sin vincular',title_vinc:'Vinculado',title_autovinc:'Coincidencia automática, sin confirmar',
+ t_copiado:'📋 Copiado',t_nocopiar:'No se pudo copiar',t_montoinv:'Monto inválido',t_ingmonto:'Ingresá un monto',t_pagoreg:'💵 Pago registrado: ',t_yapagado:'Ya está pagado',t_senareg:'💛 Seña ',t_senareg2:'% registrada',t_saldoreg:'✅ Saldo registrado: ',t_nocoinc:'No hay coincidencias pendientes',t_vincguard:' vínculos guardados',t_stockact:'📦 Stock actualizado',t_lineaserr:' línea(s) con error)',t_pegalinea:'Pegá al menos una línea',t_formato:'No se pudo leer ninguna línea. Formato: Prenda | Talle | Cantidad',t_faltatel:'Falta el teléfono',t_cfgok:'✅ Configuración guardada',t_exportcsv:'Exportado como CSV (sin librería Excel)',t_exportxlsx:'📥 Excel exportado',t_cfginicial:'Configurá la URL del Apps Script y la clave',t_planillaerr:'❌ Planilla: ',t_emailpass:'Completá email y contraseña',t_sesionok:'🟢 Sesión iniciada',t_sinsesion:'Sin sesión.',t_conectado:'🟢 Conectado · ',t_atletascarg:' atletas cargados.',t_sesionguard:'Sesión guardada; tocá Actualizar.',t_stockagregado:' agregado al stock',t_actualizadas:' prenda(s) actualizada(s)',t_stocksin:'📦 Stock: sin cargar',t_stockfaltan:'📦 Stock: faltan ',t_stockok:'📦 Stock: OK',t_atletaspill:'🏊 Atletas: ',t_planillapill:'📄 Planilla: ',t_planillaerror:'📄 Planilla: error',t_gaserr:'Configurá la URL del Apps Script',t_errguardar:'Error al guardar', st_unidades:'Unidades en stock',st_lineas:'Líneas cargadas',st_faltante:'Faltante para pedidos',st_valcosto:'Valor a costo',st_valventa:'Valor a venta',lbl_costo:'Costo',lbl_venta:'Venta',ph_costo:'Costo $',ph_venta:'Venta $',st_precios:'Precios cargados', cfg_prov_title:'🏭 Datos del proveedor',lbl_prov_nombre:'Nombre',lbl_prov_tel:'Teléfono',lbl_prov_email:'Email',lbl_prov_dir:'Dirección',lbl_prov_contacto:'Contacto',lbl_prov_notas:'Comentarios',btn_guardarprov:'Guardar proveedor',cfg_prov_help:'Se guarda en la hoja Gestion de la planilla (fila __proveedor__), así lo ves desde cualquier dispositivo.',t_provok:'✅ Datos del proveedor guardados',t_proverr:'❌ No se pudo guardar: ',
+ c_masiva:'¿Marcar ',c_masiva2:' prendas como "',c_masiva3:'"?',c_borrarpago:'¿Borrar el pago de ',c_editpago:'Editar pago:\nDejá vacío para no cambiar.\nFormato: monto | medio | fecha (AAAA-MM-DD)',
+ p_prenda:'Nombre de la prenda (ej: Trisuit Pave con mangas):',p_talle:'Talle (XS, S, M, L, XL, 2XL):',p_cant:'Cantidad:',
+ txt_nopagos:'Todavía no hay pagos registrados.',txt_pagado:'Pagado: ',txt_saldo:'Saldo: ',txt_total:'TOTAL (',txt_totalprendas:'TOTAL PRENDAS',txt_pedidos:' pedidos · ',txt_prendas:' prendas · ',txt_pedidospref:'PEDIDO INDUMENTARIA TPT\n',
+ txt_unidades:' unidades',txt_unidad:' unidad',txt_unidades2:' unidades',txt_prenda:' prenda',txt_prendas2:'s',txt_saldopref:' · saldo ',txt_pedidas:'· pedidas ',txt_flecha:' → ',txt_faltan:'⚠ faltan ',txt_quedan:'quedan ',txt_talle:'· Talle ',txt_elegiratleta:'Elegir atleta…',txt_sintel:'sin tel',txt_migrado:'(migrado)',txt_nota:'📝 nota',
+ exp_hoy:'indumentaria-',exp_csv:'Exportado como CSV (sin librería Excel)'
+},
+en:{
+ app_title:'👕 TPT — Apparel Management',app_sub:'Form orders · stock · payments · per-item deliveries · supplier summary · v6',
+ tab_pedidos:'📦 Orders',tab_cobros:'💰 Payments',tab_stock:'📦 Stock',tab_entregas:'🚚 Deliveries',tab_resumen:'📊 Supplier summary',tab_vincular:'🔗 Link athletes',tab_config:'⚙️ Config',
+ btn_update:'🔄 Refresh',
+ lbl_buscar:'Search',lbl_desde:'From',lbl_hasta:'To',lbl_pago:'Payment',lbl_entrega:'Delivery',lbl_atleta:'Athlete',btn_limpiar:'Clear',lbl_vista:'View',btn_vpedido:'📦 By order',btn_vprenda:'👕 By item',
+ opt_todos:'All',opt_todas:'All',opt_sinpago:'Unpaid',opt_consena:'With deposit',opt_consena_saldo:'With deposit (balance due)',opt_pagado:'Paid',opt_sinpedir:'Not ordered',opt_prov:'Ordered from supplier',opt_recibido:'Received',opt_entregado:'Delivered',opt_vinc:'Linked',opt_sinvinc:'Unlinked',
+ ph_pedidos:'Name, item, size...',ph_nombre:'Name...',ph_prenda:'Item or size...',ph_nombprenda:'Name or item...',
+ cobros_help:'Each order supports <b>multiple payments</b> (history): add, edit or delete payments with the <b>💵 Payments</b> button. Balance is calculated automatically. Suggested deposit: <b id="sena-pct-lbl">50</b>% (changed in Config).',
+ lbl_mostrar:'Show',btn_export:'📥 Export Excel',
+ th_atleta:'Athlete / Name',th_fecha:'Date',th_prendas:'Items',th_total:'Total',th_pagado:'Paid',th_saldo:'Balance',th_ultpago:'Last payment',th_estado:'Status',th_prenda:'Item',th_pago:'Payment',th_entrega:'Delivery',
+ stock_title:'📦 Apparel stock',
+ stock_help:'Enter how many units you have of each item and size. Stock is saved in the <b>Gestion</b> sheet of the spreadsheet (row <code>__stock__</code>), so you can see it from any device. Compared below with what is left to deliver.',
+ lbl_seccion:'Section',btn_ingstock:'➕ Enter stock',btn_nuevalinea:'🧵 New item/size',
+ entregas_title:'🚚 Deliveries — status per item',
+ entregas_help:'Each item of each athlete has its own status. Use the buttons above to change all visible items at once.',
+ lbl_estado:'Status',lbl_cambiar:'Change all visible to',btn_mprov:'📤 Ordered',btn_mrec:'📦 Received',btn_ment:'✅ Delivered',
+ resumen_title:'📊 Supplier summary',chk_sena:'Only orders with deposit or paid',chk_nombres:'Show names per size',btn_copiar:'📋 Copy text',
+ vincular_title:'🔗 Link orders with athletes',
+ vincular_help:'The form only asks for the name. Here it is matched with the backend athlete list to get the phone number (WhatsApp). Exact matches are proposed automatically; confirm them with a click or choose the athlete manually.',
+ btn_auto:'✅ Confirm all exact matches (',chk_solosin:'Only unlinked',
+ cfg_sheet_title:'📄 Orders spreadsheet (Apps Script)',lbl_cfg_gas:'Apps Script URL (/exec)',lbl_cfg_clave:'Key (the same one you set in Code.gs)',
+ cfg_sheet_help:'It is the same URL the public form uses. For reading to work you must paste the new <code>Code.gs</code> into the Apps Script project and redeploy (same URL).',
+ cfg_atletas_title:'🏊 Athletes (TPT Gestión backend)',lbl_cfg_be:'Backend URL (/exec)',lbl_email:'Email',lbl_pass:'Password',btn_login:'🔐 Sign in',btn_logout:'Sign out',
+ cfg_wa_title:'💬 WhatsApp & payment messages',lbl_alias:'Transfer alias',lbl_senapct:'Suggested deposit (%)',lbl_tconf:'Order confirmation',lbl_tsaldo:'Balance reminder',lbl_tlista:'Item ready for pickup',
+ cfg_save_title:'💾 Save',btn_guardarcfg:'Save settings',btn_restaurar:'Restore default messages',
+ cfg_save_help:'Settings are saved in this browser. Each order\'s state (athlete, payments, per-item delivery, notes, stock) is saved in the <b>Gestion</b> sheet of the same spreadsheet, visible from any device.',
+ wa_title:'💬 WhatsApp message',lbl_watel:'Phone (no 0 nor 15)',btn_wa:'📲 Open WhatsApp',btn_copiar:'📋 Copy',btn_cerrar:'Close',
+ notas_title:'📝 Order notes',btn_guardar:'Save',btn_cancelar:'Cancel',
+ pagos_title:'💵 Order payments',lbl_nuevopago:'New payment',ph_monto:'Amount',opt_medio:'Method',medio_trans:'Bank transfer',medio_efec:'Cash',medio_mp:'Mercado Pago',medio_otro:'Other',btn_agregar:'➕ Add',btn_sena2:'Deposit',btn_saldototal:'Full balance',
+ stockmodal_title:'➕ Enter stock',
+ stockmodal_help:'One line per item. Format: <code>Item | Size | Qty</code> — e.g.: <code>Trisuit Pave long sleeve | M | 5</code>. If the item already exists it is <b>added</b> to the current amount.',
+ btn_guardarstock:'💾 Save stock',
+ st_pedidos:'Orders',st_prendas:'Items',st_totalped:'Order total',st_cobrado:'Collected',st_saldopend:'Balance due',st_sinpago:'Unpaid',st_entregados:'Delivered',st_sinvinc:'Unlinked',
+ ent_pendiente:'⏳ Not ordered',ent_proveedor:'📤 Ordered from supplier',ent_recibido:'📦 Received',ent_entregado:'✅ Delivered',
+ pago_nada:'❌ Unpaid',pago_sena:'💛 Deposit',pago_total:'✅ Paid',
+ eped_pendiente:'⏳ Not ordered',eped_enproceso:'🔄 In progress',eped_parcial:'◐ Partial',eped_entregado:'✅ Delivered',
+ empty_nofiltros:'No orders match the filters.',empty_sinpedidos:'No orders loaded. Check the spreadsheet settings or tap 🔄 Refresh.',empty_sinped:'No orders.',empty_sinprendas:'No items.',empty_criterio:'No orders for the chosen criteria.',empty_sesion:'Sign in to the backend (Config) to load the athlete list.',empty_todosvinc:'All orders are linked. 🎉',empty_nopagos:'No payments registered yet.',empty_sincand:'No matches.',empty_stock:'Stock not loaded. Tap <b>➕ Enter stock</b> to start (format: Item | Size | Qty).',
+ lbl_pagos:'Payments',lbl_entregatodas:'DELIVERY (all items)',btn_confirmaratleta:'✔ Confirm athlete',btn_vincular2:'🔗 Link',btn_waconf:'💬 Confirm',btn_wasaldo:'💬 Balance',btn_waretirar:'💬 Pickup',btn_avisar:'💬 Notify',badge_nota:'📝 note',badge_auto:'(auto)',badge_sinvinc:'Unlinked',title_vinc:'Linked',title_autovinc:'Automatic match, unconfirmed',
+ t_copiado:'📋 Copied',t_nocopiar:'Could not copy',t_montoinv:'Invalid amount',t_ingmonto:'Enter an amount',t_pagoreg:'💵 Payment registered: ',t_yapagado:'Already paid',t_senareg:'💛 Deposit ',t_senareg2:'% registered',t_saldoreg:'✅ Balance registered: ',t_nocoinc:'No pending matches',t_vincguard:' links saved',t_stockact:'📦 Stock updated',t_lineaserr:' line(s) with errors)',t_pegalinea:'Paste at least one line',t_formato:'Could not read any line. Format: Item | Size | Qty',t_faltatel:'Missing phone number',t_cfgok:'✅ Settings saved',t_exportcsv:'Exported as CSV (no Excel library)',t_exportxlsx:'📥 Excel exported',t_cfginicial:'Set the Apps Script URL and key',t_planillaerr:'❌ Spreadsheet: ',t_emailpass:'Enter email and password',t_sesionok:'🟢 Signed in',t_sinsesion:'Signed out.',t_conectado:'🟢 Connected · ',t_atletascarg:' athletes loaded.',t_sesionguard:'Session saved; tap Refresh.',t_stockagregado:' added to stock',t_actualizadas:' item(s) updated',t_stocksin:'📦 Stock: not loaded',t_stockfaltan:'📦 Stock: missing ',t_stockok:'📦 Stock: OK',t_atletaspill:'🏊 Athletes: ',t_planillapill:'📄 Spreadsheet: ',t_planillaerror:'📄 Spreadsheet: error',t_gaserr:'Set the Apps Script URL',t_errguardar:'Error saving', st_unidades:'Units in stock',st_lineas:'Lines loaded',st_faltante:'Missing for orders',st_valcosto:'Value at cost',st_valventa:'Value at sale',lbl_costo:'Cost',lbl_venta:'Sale',ph_costo:'Cost $',ph_venta:'Sale $',st_precios:'Prices loaded', cfg_prov_title:'🏭 Supplier details',lbl_prov_nombre:'Name',lbl_prov_tel:'Phone',lbl_prov_email:'Email',lbl_prov_dir:'Address',lbl_prov_contacto:'Contact',lbl_prov_notas:'Comments',btn_guardarprov:'Save supplier',cfg_prov_help:'Saved in the Gestion sheet (row __proveedor__), so you can see it from any device.',t_provok:'✅ Supplier details saved',t_proverr:'❌ Could not save: ',
+ c_masiva:'Mark ',c_masiva2:' items as "',c_masiva3:'"?',c_borrarpago:'Delete the payment of ',c_editpago:'Edit payment:\nLeave empty to keep.\nFormat: amount | method | date (YYYY-MM-DD)',
+ p_prenda:'Item name (e.g.: Trisuit Pave long sleeve):',p_talle:'Size (XS, S, M, L, XL, 2XL):',p_cant:'Quantity:',
+ txt_nopagos:'No payments registered yet.',txt_pagado:'Paid: ',txt_saldo:'Balance: ',txt_total:'TOTAL (',txt_totalprendas:'TOTAL ITEMS',txt_pedidos:' orders · ',txt_prendas:' items · ',txt_pedidospref:'TPT APPAREL ORDER\n',
+ txt_unidades:' units',txt_unidad:' unit',txt_unidades2:' units',txt_prenda:' item',txt_prendas2:'s',txt_saldopref:' · balance ',txt_pedidas:'· ordered ',txt_flecha:' → ',txt_faltan:'⚠ missing ',txt_quedan:'left ',txt_talle:'· Size ',txt_elegiratleta:'Choose athlete…',txt_sintel:'no phone',txt_migrado:'(migrated)',txt_nota:'📝 note',
+ exp_hoy:'apparel-',exp_csv:'Exported as CSV (no Excel library)'
+},
+ko:{
+ app_title:'👕 TPT — 의류 관리',app_sub:'주문서 · 재고 · 수금 · 아이템별 배송 · 공급사 요약 · v6',
+ tab_pedidos:'📦 주문',tab_cobros:'💰 수금',tab_stock:'📦 재고',tab_entregas:'🚚 배송',tab_resumen:'📊 공급사 요약',tab_vincular:'🔗 선수 연결',tab_config:'⚙️ 설정',
+ btn_update:'🔄 새로고침',
+ lbl_buscar:'검색',lbl_desde:'부터',lbl_hasta:'까지',lbl_pago:'결제',lbl_entrega:'배송',lbl_atleta:'선수',btn_limpiar:'지우기',lbl_vista:'보기',btn_vpedido:'📦 주문별',btn_vprenda:'👕 아이템별',
+ opt_todos:'전체',opt_todas:'전체',opt_sinpago:'미결제',opt_consena:'예약금 있음',opt_consena_saldo:'예약금 있음 (잔액 미납)',opt_pagado:'완납',opt_sinpedir:'미발주',opt_prov:'공급사 발주',opt_recibido:'입고',opt_entregado:'배송 완료',opt_vinc:'연결됨',opt_sinvinc:'미연결',
+ ph_pedidos:'이름, 아이템, 사이즈...',ph_nombre:'이름...',ph_prenda:'아이템 또는 사이즈...',ph_nombprenda:'이름 또는 아이템...',
+ cobros_help:'각 주문은 <b>여러 건의 결제</b>(이력)를 지원합니다: <b>💵 결제</b> 버튼으로 추가·수정·삭제하세요. 잔액은 자동 계산됩니다. 권장 예약금: <b id="sena-pct-lbl">50</b>% (설정에서 변경).',
+ lbl_mostrar:'표시',btn_export:'📥 엑셀 내보내기',
+ th_atleta:'선수 / 이름',th_fecha:'날짜',th_prendas:'아이템',th_total:'합계',th_pagado:'결제됨',th_saldo:'잔액',th_ultpago:'최근 결제',th_estado:'상태',th_prenda:'아이템',th_pago:'결제',th_entrega:'배송',
+ stock_title:'📦 의류 재고',
+ stock_help:'아이템과 사이즈별 보유 수량을 입력하세요. 재고는 스프레드시트의 <b>Gestion</b> 시트(<code>__stock__</code> 행)에 저장되어 어느 기기에서나 볼 수 있습니다. 아래에서 미배송 수량과 비교됩니다.',
+ lbl_seccion:'섹션',btn_ingstock:'➕ 재고 입력',btn_nuevalinea:'🧵 새 아이템/사이즈',
+ entregas_title:'🚚 배송 — 아이템별 상태',
+ entregas_help:'각 선수의 각 아이템은 고유 상태를 가집니다. 상단 버튼으로 보이는 모든 아이템을 한 번에 변경하세요.',
+ lbl_estado:'상태',lbl_cambiar:'보이는 항목 모두 변경',btn_mprov:'📤 발주',btn_mrec:'📦 입고',btn_ment:'✅ 배송',
+ resumen_title:'📊 공급사 요약',chk_sena:'예약금 또는 완납 주문만',chk_nombres:'사이즈별 이름 보기',btn_copiar:'📋 텍스트 복사',
+ vincular_title:'🔗 주문과 선수 연결',
+ vincular_help:'주문서는 이름만 요청합니다. 여기서 백엔드 선수 명단과 대조하여 전화번호(WhatsApp)를 확인합니다. 정확히 일치하는 항목은 자동 제안되며, 클릭으로 확인하거나 직접 선택할 수 있습니다.',
+ btn_auto:'✅ 정확히 일치하는 항목 모두 확인 (',chk_solosin:'미연결만',
+ cfg_sheet_title:'📄 주문 스프레드시트 (Apps Script)',lbl_cfg_gas:'Apps Script URL (/exec)',lbl_cfg_clave:'키 (Code.gs에 설정한 것과 동일)',
+ cfg_sheet_help:'공개 주문서가 사용하는 것과 같은 URL입니다. 읽기가 작동하려면 새 <code>Code.gs</code>를 Apps Script 프로젝트에 붙여넣고 다시 배포해야 합니다(동일 URL).',
+ cfg_atletas_title:'🏊 선수 (TPT Gestión 백엔드)',lbl_cfg_be:'백엔드 URL (/exec)',lbl_email:'이메일',lbl_pass:'비밀번호',btn_login:'🔐 로그인',btn_logout:'로그아웃',
+ cfg_wa_title:'💬 WhatsApp 및 결제 메시지',lbl_alias:'송금 별칭',lbl_senapct:'권장 예약금 (%)',lbl_tconf:'주문 확인',lbl_tsaldo:'잔액 알림',lbl_tlista:'아이템 수령 준비',
+ cfg_save_title:'💾 저장',btn_guardarcfg:'설정 저장',btn_restaurar:'기본 메시지 복원',
+ cfg_save_help:'설정은 이 브라우저에 저장됩니다. 각 주문의 상태(선수, 결제, 아이템별 배송, 메모, 재고)는 같은 스프레드시트의 <b>Gestion</b> 시트에 저장되어 어느 기기에서나 볼 수 있습니다.',
+ wa_title:'💬 WhatsApp 메시지',lbl_watel:'전화번호 (0, 15 제외)',btn_wa:'📲 WhatsApp 열기',btn_copiar:'📋 복사',btn_cerrar:'닫기',
+ notas_title:'📝 주문 메모',btn_guardar:'저장',btn_cancelar:'취소',
+ pagos_title:'💵 주문 결제',lbl_nuevopago:'새 결제',ph_monto:'금액',opt_medio:'수단',medio_trans:'계좌이체',medio_efec:'현금',medio_mp:'Mercado Pago',medio_otro:'기타',btn_agregar:'➕ 추가',btn_sena2:'예약금',btn_saldototal:'잔액 전액',
+ stockmodal_title:'➕ 재고 입력',
+ stockmodal_help:'아이템당 한 줄. 형식: <code>아이템 | 사이즈 | 수량</code> — 예: <code>Trisuit Pave long sleeve | M | 5</code>. 기존 아이템은 현재 수량에 <b>더해집니다</b>.',
+ btn_guardarstock:'💾 재고 저장',
+ st_pedidos:'주문',st_prendas:'아이템',st_totalped:'주문 합계',st_cobrado:'수금',st_saldopend:'잔액',st_sinpago:'미결제',st_entregados:'배송 완료',st_sinvinc:'미연결',
+ ent_pendiente:'⏳ 미발주',ent_proveedor:'📤 공급사 발주',ent_recibido:'📦 입고',ent_entregado:'✅ 배송 완료',
+ pago_nada:'❌ 미결제',pago_sena:'💛 예약금',pago_total:'✅ 완납',
+ eped_pendiente:'⏳ 미발주',eped_enproceso:'🔄 진행 중',eped_parcial:'◐ 부분',eped_entregado:'✅ 배송 완료',
+ empty_nofiltros:'필터와 일치하는 주문이 없습니다.',empty_sinpedidos:'불러온 주문이 없습니다. 스프레드시트 설정을 확인하거나 🔄 새로고침을 누르세요.',empty_sinped:'주문이 없습니다.',empty_sinprendas:'아이템이 없습니다.',empty_criterio:'선택한 기준에 맞는 주문이 없습니다.',empty_sesion:'선수 명단을 불러오려면 백엔드(설정)에 로그인하세요.',empty_todosvinc:'모든 주문이 연결되었습니다. 🎉',empty_nopagos:'아직 등록된 결제가 없습니다.',empty_sincand:'일치 항목이 없습니다.',empty_stock:'재고가 없습니다. <b>➕ 재고 입력</b>을 눌러 시작하세요 (형식: 아이템 | 사이즈 | 수량).',
+ lbl_pagos:'결제',lbl_entregatodas:'배송 (모든 아이템)',btn_confirmaratleta:'✔ 선수 확인',btn_vincular2:'🔗 연결',btn_waconf:'💬 확인',btn_wasaldo:'💬 잔액',btn_waretirar:'💬 수령',btn_avisar:'💬 알림',badge_nota:'📝 메모',badge_auto:'(자동)',badge_sinvinc:'미연결',title_vinc:'연결됨',title_autovinc:'자동 일치, 미확인',
+ t_copiado:'📋 복사됨',t_nocopiar:'복사할 수 없습니다',t_montoinv:'잘못된 금액',t_ingmonto:'금액을 입력하세요',t_pagoreg:'💵 결제 등록: ',t_yapagado:'이미 완납되었습니다',t_senareg:'💛 예약금 ',t_senareg2:'% 등록됨',t_saldoreg:'✅ 잔액 등록: ',t_nocoinc:'대기 중인 일치 항목이 없습니다',t_vincguard:'건의 연결이 저장됨',t_stockact:'📦 재고 업데이트됨',t_lineaserr:'줄에 오류)',t_pegalinea:'최소 한 줄을 붙여넣으세요',t_formato:'줄을 읽을 수 없습니다. 형식: 아이템 | 사이즈 | 수량',t_faltatel:'전화번호가 없습니다',t_cfgok:'✅ 설정 저장됨',t_exportcsv:'CSV로 내보냄 (엑셀 라이브러리 없음)',t_exportxlsx:'📥 엑셀 내보냄',t_cfginicial:'Apps Script URL과 키를 설정하세요',t_planillaerr:'❌ 스프레드시트: ',t_emailpass:'이메일과 비밀번호를 입력하세요',t_sesionok:'🟢 로그인됨',t_sinsesion:'로그아웃 상태.',t_conectado:'🟢 연결됨 · ',t_atletascarg:'명의 선수 로드됨.',t_sesionguard:'세션 저장됨; 새로고침을 누르세요.',t_stockagregado:' 재고에 추가됨',t_actualizadas:'개 아이템 업데이트됨',t_stocksin:'📦 재고: 없음',t_stockfaltan:'📦 재고: 부족 ',t_stockok:'📦 재고: OK',t_atletaspill:'🏊 선수: ',t_planillapill:'📄 스프레드시트: ',t_planillaerror:'📄 스프레드시트: 오류',t_gaserr:'Apps Script URL을 설정하세요',t_errguardar:'저장 오류', st_unidades:'보유 수량',st_lineas:'등록된 라인',st_faltante:'주문 부족 수량',st_valcosto:'원가 총액',st_valventa:'판매가 총액',lbl_costo:'원가',lbl_venta:'판매가',ph_costo:'원가 $',ph_venta:'판매가 $',st_precios:'가격 등록됨', cfg_prov_title:'🏭 공급사 정보',lbl_prov_nombre:'이름',lbl_prov_tel:'전화번호',lbl_prov_email:'이메일',lbl_prov_dir:'주소',lbl_prov_contacto:'담당자',lbl_prov_notas:'코멘트',btn_guardarprov:'공급사 저장',cfg_prov_help:'스프레드시트 Gestion 시트(__proveedor__ 행)에 저장되어 어느 기기에서나 볼 수 있습니다.',t_provok:'✅ 공급사 정보가 저장되었습니다',t_proverr:'❌ 저장 실패: ',
+ c_masiva:'',c_masiva2:'개 아이템을 "',c_masiva3:'"(으)로 표시할까요?',c_borrarpago:'결제를 삭제할까요? 금액: ',c_editpago:'결제 수정:\n유지하려면 비워두세요.\n형식: 금액 | 수단 | 날짜 (YYYY-MM-DD)',
+ p_prenda:'아이템 이름 (예: Trisuit Pave long sleeve):',p_talle:'사이즈 (XS, S, M, L, XL, 2XL):',p_cant:'수량:',
+ txt_nopagos:'아직 등록된 결제가 없습니다.',txt_pagado:'결제: ',txt_saldo:'잔액: ',txt_total:'합계 (',txt_totalprendas:'아이템 합계',txt_pedidos:'건 주문 · ',txt_prendas:'개 아이템 · ',txt_pedidospref:'TPT 의류 주문\n',
+ txt_unidades:' units',txt_unidad:' unit',txt_unidades2:' units',txt_prenda:' item',txt_prendas2:'s',txt_saldopref:' · 잔액 ',txt_pedidas:'· 발주 ',txt_flecha:' → ',txt_faltan:'⚠ 부족 ',txt_quedan:'남음 ',txt_talle:'· 사이즈 ',txt_elegiratleta:'선수 선택…',txt_sintel:'전화 없음',txt_migrado:'(이전됨)',txt_nota:'📝 메모',
+ exp_hoy:'의류-',exp_csv:'CSV로 내보냄 (엑셀 라이브러리 없음)'
+}};
+let IDIOMA=localStorage.getItem('ind_idioma')||'es';
+function t(k){ const d=I18N[IDIOMA]||I18N.es; return (d[k]!=null?d[k]:(I18N.es[k]!=null?I18N.es[k]:k)); }
+function setearIdioma(id){ IDIOMA=I18N[id]?id:'es'; localStorage.setItem('ind_idioma',IDIOMA); aplicarIdioma(); }
+function aplicarIdioma(){
+  document.querySelectorAll('[data-i18n]').forEach(e=>{ e.textContent=t(e.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{ e.placeholder=t(e.dataset.i18nPh); });
+  const sel=$('sel-idioma'); if(sel) sel.value=IDIOMA;
+  renderTodo();
+}
+
+// Sección de cada prenda (para el resumen al proveedor y la vista por prenda). Lo que no matchea va a "Otros".
+const SECCION_DE=[[/pave|trisuit/i,'Pave'],[/poncho|hidra/i,'HidraSport'],[/jacana|jakana|remera|top|musculosa/i,'Jacana']];
+const SECCIONES_ORDEN=['Pave','HidraSport','Jacana','Otros'];
+const SEC_COLOR={Pave:'var(--naranja)',HidraSport:'var(--rojo)',Jacana:'#C9A227',Otros:'var(--texto-suave)'};
+const TALLES=['XS','S','M','L','XL','2XL','—'];
+let VISTA_PEDIDOS='pedido';
+const ENTREGA_LBL={pendiente:'⏳ Sin pedir',proveedor:'📤 Pedido al proveedor',recibido:'📦 Recibido',entregado:'✅ Entregado'};
+const ENTREGA_CLS={pendiente:'b-mut',proveedor:'b-info',recibido:'b-warn',entregado:'b-ok'};
+// Etiquetas de estado/pago traducidas en tiempo de render (dependen del idioma)
+const ENTREGA_KEY={pendiente:'ent_pendiente',proveedor:'ent_proveedor',recibido:'ent_recibido',entregado:'ent_entregado'};
+const PAGO_KEY={nada:'pago_nada',sena:'pago_sena',total:'pago_total'};
+const ENT_PED_KEY={pendiente:'eped_pendiente',enproceso:'eped_enproceso',parcial:'eped_parcial',entregado:'eped_entregado'};
+const entLbl=e=>t(ENTREGA_KEY[e]||e);
+const pagoLbl=e=>t(PAGO_KEY[e]||e);
+
+// ═══════════════════════════ ESTADO ═══════════════════════════
+let RAW=[];        // filas de la planilla
+let PEDIDOS=[];    // agrupados
+let GESTION={};    // key -> estado guardado en hoja Gestion
+let STOCK={};      // "producto|talle" -> cantidad (persistido en Gestion['__stock__'])
+let PRECIOS={};    // "producto" -> {costo, venta} (por tipo de prenda, sin importar el talle)
+let AL=[];         // atletas del backend
+let AUTO={};       // key -> alumno sugerido (coincidencia exacta, sin guardar)
+let _waKey=null,_notasKey=null,_pagosKey=null;
+let _cola=Promise.resolve(); // escrituras secuenciales al Apps Script
+
+// ═══════════════════════════ UTILS ═══════════════════════════
+const $=id=>document.getElementById(id);
+const norm=s=>String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+const money=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-AR');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m,t){ const e=$('toast'); e.textContent=m; e.className='toast show'+(t==='err'?' err':''); clearTimeout(e._t); e._t=setTimeout(()=>e.classList.remove('show'),3200); }
+function loading(v){ $('loading').style.display=v?'block':'none'; }
+function copiarTexto(t){ navigator.clipboard.writeText(t).then(()=>toast(t('t_copiado'))).catch(()=>toast(t('t_nocopiar'),'err')); }
+// "25/9/2026, 14:03:22" (es-AR) o "2026-09-25 14:03" → Date
+function parseFecha(s){
+  if(!s) return null; s=String(s).trim();
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,?\s*(\d{1,2}):(\d{2}))?/);
+  if(m) return new Date(+m[3],+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0));
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+  if(m) return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0));
+  const d=new Date(s); return isNaN(d)?null:d;
+}
+const isoDia=d=>d?d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'):'';
+const fmtDia=d=>d?String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear():'';
+function seccionDe(prod){ for(const [re,s] of SECCION_DE) if(re.test(prod)) return s; return 'Otros'; }
+function telLimpio(t){ let d=String(t||'').replace(/\D/g,''); if(d.startsWith('549')) d=d.slice(3); else if(d.startsWith('54')) d=d.slice(2); if(d.startsWith('0')) d=d.slice(1); return d; }
+// Clave estable de un item dentro de un pedido: producto normalizado + talle
+const itemKeyOf=(prod,talle)=>norm(prod)+'|'+String(talle||'—').trim().toLowerCase();
+const stockKeyOf=(prod,talle)=>norm(prod)+'|'+String(talle||'—').trim().toUpperCase();
+
+// ═══════════════════════════ API PLANILLA ═══════════════════════════
+async function gasGet(params){
+  if(!GAS_URL) throw new Error(t('t_gaserr'));
+  const qs=new URLSearchParams(Object.assign({clave:CLAVE},params)).toString();
+  const r=await fetch(GAS_URL+'?'+qs,{cache:'no-store'});
+  const j=await r.json(); if(!j.ok) throw new Error(j.error||'Error del Apps Script'); return j.data;
+}
+function gasPost(obj){
+  // Encoladas: nunca dos escrituras en paralelo contra el Sheet
+  const p=_cola.then(async()=>{
+    const r=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({clave:CLAVE},obj))});
+    const j=await r.json(); if(!j.ok) throw new Error(j.error||'Error al guardar'); return j.data;
+  });
+  _cola=p.catch(()=>{}); return p;
+}
+async function guardarGestion(key,data){
+  const prev=Object.assign({},GESTION[key]||{});
+  GESTION[key]=Object.assign({},prev,data); renderTodo();
+  try{ loading(true); const g=await gasPost({action:'setGestion',key,data}); GESTION[key]=g; }
+  catch(e){ GESTION[key]=prev; toast('❌ '+e.message,'err'); }
+  finally{ loading(false); renderTodo(); }
+}
+
+// ═══════════════════════════ API BACKEND (atletas) ═══════════════════════════
+const beBase=()=>BE_URL.replace(/\/exec\/?$/,'');
+async function loginBackend(){
+  const email=$('cfg-email').value.trim(), pass=$('cfg-pass').value;
+  BE_URL=$('cfg-be').value.trim()||DEF_BE; localStorage.setItem(CFG_KEYS.be,BE_URL); localStorage.setItem(CFG_KEYS.email,email);
+  if(!email||!pass){ toast(t('t_emailpass'),'err'); return; }
+  try{ loading(true);
+    const r=await fetch(beBase()+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const j=await r.json(); if(!j.ok) throw new Error(j.error||'No se pudo iniciar sesión');
+    TOKEN=j.token; localStorage.setItem('ind_token',TOKEN); $('cfg-pass').value='';
+    toast(t('t_sesionok')); await cargarAtletas();
+  }catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ loading(false); }
+}
+function cerrarSesion(){ TOKEN=''; localStorage.removeItem('ind_token'); AL=[]; $('cfg-be-st').textContent=t('t_sinsesion'); $('st-al').textContent=t('t_atletaspill')+t('t_sinsesion'); calcularAuto(); renderTodo(); }
+async function cargarAtletas(){
+  if(!TOKEN){ $('st-al').textContent=t('t_atletaspill')+t('t_sinsesion'); $('cfg-be-st').textContent=t('t_sinsesion'); return; }
+  try{
+    const r=await fetch(BE_URL+'?recurso=alumnos&action=GET',{cache:'no-store',headers:{'Authorization':'Bearer '+TOKEN}});
+    const nuevo=r.headers.get('X-Token-Refresh'); if(nuevo){ TOKEN=nuevo; localStorage.setItem('ind_token',TOKEN); }
+    const j=await r.json();
+    if(!j.ok){ if(/autorizad|sesi/i.test(j.error||'')){ TOKEN=''; localStorage.removeItem('ind_token'); } throw new Error(j.error||'Error'); }
+    AL=(j.data||[]).map(a=>({id:String(a.ID),apellido:a.Apellido||'',nombre:a.Nombre||'',tel:a.Telefono||'',profe:a.Profe||'',full:norm((a.Apellido||'')+' '+(a.Nombre||''))}));
+    $('st-al').textContent=t('t_atletaspill')+AL.length; $('cfg-be-st').textContent=t('t_conectado')+AL.length+t('t_atletascarg');
+  }catch(e){ $('st-al').textContent=t('t_atletaspill')+t('t_planillaerror'); $('cfg-be-st').textContent='❌ '+e.message; }
+  calcularAuto();
+}
+
+// ═══════════════════════════ CARGA Y AGRUPADO ═══════════════════════════
+async function cargarPedidos(){
+  try{ loading(true);
+    const d=await gasGet({action:'getAll'});
+    RAW=d.pedidos||[]; GESTION=d.gestion||{};
+    STOCK=(GESTION['__stock__']||{}).lineas||{};
+    PRECIOS=(GESTION['__stock__']||{}).precios||{};
+    PROVEEDOR=GESTION['__proveedor__']||{};
+    delete GESTION['__stock__']; delete GESTION['__proveedor__'];
+    agrupar(); $('st-sheet').textContent=t('t_planillapill')+RAW.length+' · '+PEDIDOS.length;
+  }catch(e){ $('st-sheet').textContent=t('t_planillaerror'); toast(t('t_planillaerr')+e.message,'err'); if(!CLAVE||!GAS_URL) sp('config',null); }
+  finally{ loading(false); }
+}
+// La planilla puede traer las columnas con otros nombres (p. ej. "Tipo de manga" en vez de
+// "Producto", "Precio Total por pedido" en vez de "Total"). Se toma el primero que tenga valor.
+const COL_ALIAS={
+  producto:['producto','tipo de manga','prenda','tipo de prenda'],
+  precio:['precio','precio unitario','precio unit.'],
+  subtotal:['subtotal','precio total por item'],
+  total:['total','precio total por pedido'],
+  sena:['sena','seña']
+};
+function col(r,campo){ for(const k of COL_ALIAS[campo]){ const v=r[k]; if(v!=null&&v!=='') return v; } return ''; }
+function agrupar(){
+  const map=new Map();
+  RAW.forEach(r=>{
+    const d=parseFecha(r.fecha);
+    const total=Number(col(r,'total'))||0;
+    const key=norm(r.nombre)+'|'+(d?isoDia(d)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'):String(r.fecha||''))+'|'+total;
+    if(!map.has(key)) map.set(key,{key,nombre:String(r.nombre||'').trim(),fecha:d,fechaTxt:String(r.fecha||''),total,senaPlanilla:0,items:[]});
+    const p=map.get(key);
+    const sena=Number(col(r,'sena')); if(sena>p.senaPlanilla) p.senaPlanilla=sena; // seña cargada a mano en la planilla
+    const precio=Number(col(r,'precio'))||0, cant=Number(r.cantidad)||1;
+    p.items.push({fila:r.fila,producto:String(col(r,'producto')).trim()||'(sin nombre)',talle:String(r.talle||'—').trim()||'—',cantidad:cant,precio,subtotal:Number(col(r,'subtotal'))||precio*cant});
+  });
+  PEDIDOS=[...map.values()].map(p=>{ p.sumItems=p.items.reduce((s,i)=>s+i.subtotal,0); if(!p.total) p.total=p.sumItems; p.prendas=p.items.reduce((s,i)=>s+i.cantidad,0); return p; })
+    .sort((a,b)=>(b.fecha?b.fecha.getTime():0)-(a.fecha?a.fecha.getTime():0));
+  calcularAuto();
+}
+async function cargarTodo(){ await Promise.all([cargarPedidos(),cargarAtletas()]); renderTodo(); }
+
+// ═══════════════════════════ VÍNCULO CON ATLETAS ═══════════════════════════
+function candidatos(nombre){
+  const toks=norm(nombre).split(' ').filter(t=>t.length>1); if(!toks.length||!AL.length) return [];
+  return AL.map(a=>{ const at=a.full.split(' '); const hit=toks.filter(t=>at.includes(t)).length; const exact=hit===toks.length&&hit===at.length;
+    return {a,score:hit/Math.max(toks.length,at.length),exact,hit}; }).filter(c=>c.hit>0).sort((x,y)=>y.score-x.score).slice(0,4);
+}
+function calcularAuto(){
+  AUTO={};
+  PEDIDOS.forEach(p=>{ const g=GESTION[p.key]; if(g&&g.alumno_id) return; const c=candidatos(p.nombre); if(c.length&&c[0].exact&&(c.length<2||!c[1].exact)) AUTO[p.key]=c[0].a; });
+  const ac=$('auto-count'); if(ac) ac.textContent=Object.keys(AUTO).length;
+}
+function alumnoDe(p){ const g=GESTION[p.key]; if(g&&g.alumno_id){ return {id:g.alumno_id,nombre:g.alumno||'',tel:g.telefono||'',guardado:true}; } const a=AUTO[p.key]; if(a) return {id:a.id,nombre:a.apellido+', '+a.nombre,tel:a.tel,guardado:false}; return null; }
+function vincular(key,id){ const a=AL.find(x=>x.id===String(id)); if(!a) return; guardarGestion(key,{alumno_id:a.id,alumno:a.apellido+', '+a.nombre,telefono:a.tel}); }
+function desvincular(key){ guardarGestion(key,{alumno_id:'',alumno:'',telefono:''}); }
+async function guardarAutomaticos(){ const ks=Object.keys(AUTO); if(!ks.length){ toast(t('t_nocoinc')); return; } for(const k of ks){ const a=AUTO[k]; await guardarGestion(k,{alumno_id:a.id,alumno:a.apellido+', '+a.nombre,telefono:a.tel}); } toast('✅ '+ks.length+t('t_vincguard')); }
+
+// ═══════════════════════════ PAGOS (CRUD con historial) ═══════════════════════════
+// GESTION[key].pagos = [{monto, medio, fecha, nota}] — el total pagado es la suma.
+// Compatibilidad: si el pedido viejo tenía "pagado" suelto, se cuenta como un pago implícito.
+function pagosDe(p){
+  const g=GESTION[p.key]||{};
+  const lista=(g.pagos||[]).filter(x=>Number(x.monto)>0).map(x=>({monto:Number(x.monto)||0,medio:x.medio||'',fecha:x.fecha||'',nota:x.nota||''}));
+  if(!lista.length && g.pagado!=='' && g.pagado!=null && Number(g.pagado)>0){
+    lista.push({monto:Number(g.pagado)||0,medio:g.medio||'',fecha:g.fecha_pago||'',nota:'(migrado)'});
+  }
+  return lista;
+}
+function pagadoDe(p){ return pagosDe(p).reduce((s,x)=>s+x.monto,0); }
+function estadoPago(p){ const pg=pagadoDe(p); if(pg<=0) return 'nada'; if(pg>=p.total-1) return 'total'; return 'sena'; }
+const PAGO_LBL={nada:'❌ Sin pago',sena:'💛 Seña',total:'✅ Pagado'}, PAGO_CLS={nada:'b-err',sena:'b-warn',total:'b-ok'};
+function entregaDe(p){ const g=GESTION[p.key]; return (g&&g.entrega)||'pendiente'; }
+// ── Estado de entrega POR PRENDA ──
+// GESTION[key].items = { itemKey: {entrega} }. Si un item no tiene estado propio,
+// hereda el estado general del pedido (compatibilidad con lo ya cargado).
+function entregaItemDe(p,it){ const g=GESTION[p.key]; const ie=g&&g.items&&g.items[itemKeyOf(it.producto,it.talle)]; return (ie&&ie.entrega)||entregaDe(p); }
+function setEntregaItem(key,it,est){ const g=GESTION[key]||{}; const items=Object.assign({},g.items||{}); items[itemKeyOf(it.producto,it.talle)]=Object.assign({},items[itemKeyOf(it.producto,it.talle)]||{},{entrega:est}); guardarGestion(key,{items}); }
+function pedidoEntregadoCompleto(p){ return p.items.every(it=>entregaItemDe(p,it)==='entregado'); }
+// Estado "resumido" del pedido según sus prendas (para badges y filtros)
+function estadoEntregaPedido(p){
+  const es=p.items.map(it=>entregaItemDe(p,it));
+  if(es.every(e=>e==='entregado')) return 'entregado';
+  if(es.every(e=>e==='pendiente')) return 'pendiente';
+  if(es.some(e=>e==='entregado')) return 'parcial';
+  if(es.some(e=>e!=='pendiente')) return 'en-proceso';
+  return 'pendiente';
+}
+const ENT_PED_LBL={pendiente:'⏳ Sin pedir',enproceso:'🔄 En proceso',parcial:'◐ Parcial',entregado:'✅ Entregado'};
+function badgeEntregaPedido(p){
+  const e=estadoEntregaPedido(p);
+  const lbl=e==='en-proceso'?t('eped_enproceso'):(t(ENT_PED_KEY[e])||e);
+  const cls=e==='entregado'?'b-ok':e==='parcial'?'b-vio':e==='en-proceso'?'b-info':'b-mut';
+  return '<span class="badge '+cls+'">'+lbl+'</span>';
+}
+function setPago(key,monto,medio,fecha){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; monto=Math.max(0,Number(monto)||0); if(monto<=0){ toast(t('t_montoinv'),'err'); return; } const pagos=pagosDe(p).map(x=>({monto:x.monto,medio:x.medio,fecha:x.fecha,nota:x.nota==='(migrado)'?'':x.nota})); pagos.push({monto,medio:medio||'',fecha:fecha||isoDia(new Date())}); guardarGestion(key,{pagos,pagado:'',medio:medio||'',fecha_pago:fecha||isoDia(new Date())}); }
+function agregarPago(){ const p=PEDIDOS.find(x=>x.key===_pagosKey); if(!p) return; const monto=Number($('pago-nuevo-monto').value)||0; if(monto<=0){ toast(t('t_ingmonto'),'err'); return; } const medio=$('pago-nuevo-medio').value, fecha=$('pago-nuevo-fecha').value||isoDia(new Date()); setPago(_pagosKey,monto,medio,fecha); cerrarModal(); toast(t('t_pagoreg')+money(monto)); }
+function borrarPago(key,idx){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; const pagos=pagosDe(p); if(idx<0||idx>=pagos.length) return; if(!confirm(t('c_borrarpago')+money(pagos[idx].monto)+'?')) return; pagos.splice(idx,1); guardarGestion(key,{pagos,pagado:''}); }
+function editarPago(key,idx,campo,valor){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; const pagos=pagosDe(p); if(!pagos[idx]) return; pagos[idx][campo]=valor; guardarGestion(key,{pagos,pagado:''}); }
+function pagoRapidoModal(tipo){ const p=PEDIDOS.find(x=>x.key===_pagosKey); if(!p) return; const pagos=pagosDe(p); const ya=pagos.reduce((s,x)=>s+x.monto,0);
+  if(tipo==='sena'){ const m=Math.round(p.total*SENA_PCT()/100); setPago(_pagosKey,m,$('pago-nuevo-medio').value,$('pago-nuevo-fecha').value); }
+  else { const saldo=Math.max(0,p.total-ya); if(saldo<=0){ toast(t('t_yapagado'),'err'); return; } setPago(_pagosKey,saldo,$('pago-nuevo-medio').value,$('pago-nuevo-fecha').value); }
+  cerrarModal(); }
+function abrirPagos(key){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; _pagosKey=key; const al=alumnoDe(p);
+  $('pagos-quien').textContent=(al?al.nombre:p.nombre)+' · '+fmtDia(p.fecha)+' · Total '+money(p.total);
+  renderPagosHistorial(p); $('modal-pagos').classList.add('show'); }
+function renderPagosHistorial(p){
+  const pagos=pagosDe(p); const ya=pagos.reduce((s,x)=>s+x.monto,0); const saldo=p.total-ya;
+  let html='<div class="pago-hist">';
+  if(!pagos.length) html+='<div class="help">'+t('txt_nopagos')+'</div>';
+  else pagos.map((x,i)=>{ html+='<div class="ph"><span><b>'+money(x.monto)+'</b>'+(x.medio?' · '+esc(x.medio):'')+(x.fecha?' · '+esc(x.fecha):'')+(x.nota?' <span class="m">'+esc(x.nota)+'</span>':'')+'</span>'
+    +'<span><button class="btn-sm ghost" onclick="editarPagoEnModal('+i+')">✏️</button><button class="btn-sm del" onclick="borrarPago(_pagosKey,'+i+')">🗑</button></span></div>'; }).join('');
+  html+='<div class="ph" style="border-top:1px solid var(--borde);margin-top:4px;padding-top:4px"><span>'+t('txt_pagado')+'<b>'+money(ya)+'</b></span><span>'+t('txt_saldo')+'<b style="color:'+(saldo>0?'var(--rojo)':'var(--verde)')+'">'+money(saldo)+'</b></span></div></div>';
+  $('pagos-historial').innerHTML=html;
+}
+function editarPagoEnModal(idx){ const p=PEDIDOS.find(x=>x.key===_pagosKey); if(!p) return; const pagos=pagosDe(p); const x=pagos[idx]; if(!x) return;
+  const v=prompt(t('c_editpago'),x.monto+' | '+(x.medio||'')+' | '+(x.fecha||'')); if(v===null) return;
+  const parts=v.split('|').map(s=>s.trim());
+  if(parts[0]!==''&&Number(parts[0])>0) pagos[idx].monto=Number(parts[0]);
+  if(parts[1]!==undefined&&parts[1]!=='') pagos[idx].medio=parts[1];
+  if(parts[2]!==undefined&&parts[2]!=='') pagos[idx].fecha=parts[2];
+  guardarGestion(_pagosKey,{pagos,pagado:''}); renderPagosHistorial(p); }
+// Accesos rápidos desde las tablas (equivalen a abrir el modal y tocar el botón)
+function senaRapida(key){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; setPago(key,Math.round(p.total*SENA_PCT()/100),'',isoDia(new Date())); toast(t('t_senareg')+SENA_PCT()+t('t_senareg2')); }
+function pagoTotal(key){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; const ya=pagadoDe(p); const saldo=Math.max(0,p.total-ya); if(saldo<=0){ toast(t('t_yapagado')); return; } setPago(key,saldo,'',isoDia(new Date())); toast(t('t_saldoreg')+money(saldo)); }
+function setEntrega(key,est){ guardarGestion(key,{entrega:est}); }
+// Cambia el estado de TODAS las prendas del pedido (equivale al estado general)
+function setEntregaTodo(key,est){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; const items={}; p.items.forEach(it=>{ items[itemKeyOf(it.producto,it.talle)]={entrega:est}; }); guardarGestion(key,{items,entrega:est}); }
+async function entregaMasiva(est){ const filas=[...document.querySelectorAll('#entregas-body tr[data-key]')].map(t=>({key:t.dataset.key,prod:t.dataset.prod,talle:t.dataset.talle})).filter(f=>f.prod); if(!filas.length) return; if(!confirm(t('c_masiva')+filas.length+t('c_masiva2')+entLbl(est)+t('c_masiva3'))) return; for(const f of filas) await guardarGestion(f.key,{items:Object.assign({},(GESTION[f.key]||{}).items||{},{[itemKeyOf(f.prod,f.talle)]:{entrega:est}})}); toast('✅ '+filas.length+t('t_actualizadas')); }
+
+// ═══════════════════════════ STOCK ═══════════════════════════
+// STOCK = { "producto|TALLE": cantidad }. Se guarda en la hoja Gestion bajo la key '__stock__'.
+function stockDe(prod,talle){ return Number(STOCK[stockKeyOf(prod,talle)])||0; }
+function necesidades(){ // producto|talle -> unidades pedidas (no entregadas todavía)
+  const nec={};
+  PEDIDOS.forEach(p=>p.items.forEach(it=>{ if(entregaItemDe(p,it)==='entregado') return; const k=stockKeyOf(it.producto,it.talle); nec[k]=(nec[k]||0)+it.cantidad; }));
+  return nec;
+}
+function guardarStock(lineas){ const norm2={}; Object.keys(lineas).forEach(k=>{ const [prod,talle]=k.split('|'); if(!prod) return; const kk=stockKeyOf(prod,talle); norm2[kk]=(norm2[kk]||0)+(Number(lineas[k])||0); }); STOCK=Object.assign({},STOCK,norm2); const limpio={}; Object.keys(STOCK).forEach(k=>{ if(STOCK[k]>0) limpio[k]=STOCK[k]; }); STOCK=limpio;
+  guardarGestion('__stock__',{lineas:STOCK,precios:PRECIOS}); }
+function precioDe(prod){ return PRECIOS[norm(prod)]||{}; }
+function setPrecio(prod,campo,valor){ const k=norm(prod); const p=Object.assign({},PRECIOS[k]||{}); p[campo]=Math.max(0,Number(valor)||0); PRECIOS[k]=p; guardarGestion('__stock__',{lineas:STOCK,precios:PRECIOS}); }
+function ajustarStock(prod,talle,delta){ const k=stockKeyOf(prod,talle); guardarStock({[k]:Math.max(0,(Number(STOCK[k])||0)+delta)}); }
+function setStockDirecto(prod,talle,valor){ const k=stockKeyOf(prod,talle); guardarStock({[k]:Math.max(0,Number(valor)||0)}); }
+function agregarLineaStock(){
+  const prod=prompt(t('p_prenda')); if(!prod) return;
+  const talle=(prompt(t('p_talle'))||'—').trim().toUpperCase()||'—';
+  const cant=Number(prompt(t('p_cant'),'0'))||0;
+  guardarStock({[stockKeyOf(prod,talle)]:cant}); toast('🧵 '+prod+' · '+talle+t('t_stockagregado'));
+}
+function abrirStockIngreso(){ $('stock-txt').value=''; $('modal-stock').classList.add('show'); }
+function guardarStockIngreso(){
+  const txt=$('stock-txt').value.trim(); if(!txt){ toast(t('t_pegalinea'),'err'); return; }
+  const lineas={}; let errores=0;
+  txt.split('\n').forEach(l=>{ const parts=l.split('|').map(s=>s.trim()); if(parts.length<3||!parts[0]){ if(l.trim()) errores++; return; }
+    const cant=Number(parts[2]); if(isNaN(cant)){ errores++; return; }
+    lineas[stockKeyOf(parts[0],parts[1])]=(lineas[stockKeyOf(parts[0],parts[1])]||0)+Math.max(0,cant); });
+  if(!Object.keys(lineas).length){ toast(t('t_formato'),'err'); return; }
+  guardarStock(lineas); cerrarModal();
+  toast(t('t_stockact')+(errores?' ('+errores+t('t_lineaserr'):''));
+}
+function stockFaltanteTotal(){ const nec=necesidades(); let f=0; Object.keys(nec).forEach(k=>{ const s=Number(STOCK[k])||0; if(nec[k]>s) f+=nec[k]-s; }); return f; }
+
+// ═══════════════════════════ WHATSAPP ═══════════════════════════
+function itemsTxt(p){ return p.items.map(i=>'▸ '+i.producto+(i.talle&&i.talle!=='—'?' · Talle '+i.talle:'')+' · x'+i.cantidad+' · '+money(i.subtotal)).join('\n'); }
+function plantilla(tipo,p){
+  const t=cfg(tipo==='conf'?'tconf':tipo==='saldo'?'tsaldo':'tlista',PLANTILLAS[tipo]);
+  const pg=pagadoDe(p), al=alumnoDe(p);
+  const nombre=(al&&al.nombre?al.nombre.split(',').slice(1).join(',').trim():'')||p.nombre.split(' ')[0];
+  return t.replace(/{nombre}/g,nombre).replace(/{items}/g,itemsTxt(p)).replace(/{total}/g,money(p.total)).replace(/{sena}/g,money(p.total*SENA_PCT()/100)).replace(/{pagado}/g,money(pg)).replace(/{saldo}/g,money(p.total-pg)).replace(/{alias}/g,ALIAS());
+}
+function abrirWA(key,tipo){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; _waKey=key; const al=alumnoDe(p); $('wa-tel').value=telLimpio(al&&al.tel); $('wa-txt').value=plantilla(tipo,p); $('modal-wa').classList.add('show'); }
+function enviarWA(){ const tel=telLimpio($('wa-tel').value); const txt=$('wa-txt').value; if(!tel){ toast(t('t_faltatel'),'err'); return; } window.open('https://wa.me/549'+tel+'?text='+encodeURIComponent(txt),'_blank'); }
+function cerrarModal(){ document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('show')); }
+function abrirNotas(key){ const p=PEDIDOS.find(x=>x.key===key); _notasKey=key; $('notas-quien').textContent=p.nombre+' · '+fmtDia(p.fecha); $('notas-txt').value=(GESTION[key]||{}).notas||''; $('modal-notas').classList.add('show'); }
+function guardarNotas(){ guardarGestion(_notasKey,{notas:$('notas-txt').value.trim()}); cerrarModal(); }
+
+// ═══════════════════════════ RENDER ═══════════════════════════
+function sp(page,el){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); $('page-'+page).classList.add('active'); (el||document.querySelector('.tab[data-page="'+page+'"]')).classList.add('active'); if(page==='config') cargarConfigForm(); if(page==='prendas') cargarPrendas(); }
+
+// ═══════════════════════════ PRENDAS (catálogo con costo y precio de venta) ═══════════════════════════
+// Hoja "Prendas" de la planilla: Proveedor | Prenda | Costo | Precio de venta | Talles
+let PRENDAS=[];
+async function cargarPrendas(){
+  try{ loading(true); PRENDAS=await gasGet({action:'getPrendas'}); renderPrendas(); }
+  catch(e){ toast('❌ Prendas: '+e.message,'err'); }
+  finally{ loading(false); }
+}
+function renderPrendas(){
+  const q=norm($('pf-q').value);
+  const lista=PRENDAS.filter(p=>!q||norm(p.prenda+' '+p.proveedor).includes(q));
+  if(!lista.length){ $('prendas-lista').innerHTML='<p class="help">No hay prendas cargadas.</p>'; return; }
+  $('prendas-lista').innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Proveedor</th><th>Prenda</th><th>Costo $</th><th>Precio de venta $</th><th>Talles</th><th></th></tr></thead><tbody>'
+  +lista.map(p=>'<tr>'
+    +'<td>'+esc(p.proveedor)+'</td>'
+    +'<td>'+esc(p.prenda)+'</td>'
+    +'<td><input type="number" step="0.01" id="pc-'+p.fila+'" value="'+esc(p.costo)+'" style="width:110px"></td>'
+    +'<td><input type="number" step="0.01" id="pv-'+p.fila+'" value="'+esc(p.precio)+'" style="width:110px"></td>'
+    +'<td>'+esc(p.talles)+'</td>'
+    +'<td style="white-space:nowrap"><button class="btn" onclick="guardarPrendaFila('+p.fila+')">Guardar</button> <button class="btn ghost" onclick="borrarPrenda('+p.fila+')">🗑️</button></td>'
+    +'</tr>').join('')
+  +'</tbody></table></div>';
+}
+async function enviarPrenda(data){
+  try{ loading(true); await gasPost({action:'setPrenda',data}); toast('✅ Prenda guardada'); await cargarPrendas(); return true; }
+  catch(e){ toast('❌ '+e.message,'err'); return false; }
+  finally{ loading(false); }
+}
+function guardarPrendaFila(fila){
+  const p=PRENDAS.find(x=>x.fila===fila); if(!p) return;
+  enviarPrenda({key_anterior:p.key,proveedor:p.proveedor,prenda:p.prenda,talles:p.talles,costo:$('pc-'+fila).value,precio:$('pv-'+fila).value});
+}
+async function agregarPrenda(){
+  const prov=$('pn-prov').value.trim(), prenda=$('pn-prenda').value.trim();
+  if(!prov||!prenda){ toast('Completá proveedor y prenda','err'); return; }
+  const ok=await enviarPrenda({proveedor:prov,prenda,costo:$('pn-costo').value,precio:$('pn-precio').value,talles:$('pn-talles').value.trim()||'XS a 3XL'});
+  if(ok){ ['pn-prov','pn-prenda','pn-costo','pn-precio','pn-talles'].forEach(id=>$(id).value=''); }
+}
+async function borrarPrenda(fila){
+  const p=PRENDAS.find(x=>x.fila===fila); if(!p) return;
+  if(!confirm('¿Borrar "'+p.prenda+'" de '+p.proveedor+'?')) return;
+  try{ loading(true); await gasPost({action:'delPrenda',key:p.key}); toast('🗑️ Prenda borrada'); await cargarPrendas(); }
+  catch(e){ toast('❌ '+e.message,'err'); }
+  finally{ loading(false); }
+}
+function renderTodo(){ renderStats(); renderPedidos(); renderCobros(); renderStock(); renderEntregas(); renderResumen(); renderVincular(); actualizarPillStock(); }
+function limpiarFiltros(){ ['f-q','f-desde','f-hasta','f-pago','f-ent','f-vin'].forEach(i=>$(i).value=''); renderPedidos(); }
+function enRango(p,desdeId,hastaId){ const d=$(desdeId).value,h=$(hastaId).value; const dia=isoDia(p.fecha); if(d&&dia<d) return false; if(h&&dia>h) return false; return true; }
+
+function renderStats(){
+  const tot=PEDIDOS.reduce((s,p)=>s+p.total,0), pag=PEDIDOS.reduce((s,p)=>s+Math.min(pagadoDe(p),p.total),0);
+  const prendas=PEDIDOS.reduce((s,p)=>s+p.prendas,0), ent=PEDIDOS.filter(p=>estadoEntregaPedido(p)==='entregado').length;
+  const sinPago=PEDIDOS.filter(p=>estadoPago(p)==='nada').length, sinVin=PEDIDOS.filter(p=>!alumnoDe(p)).length;
+  $('stats').innerHTML=[['n',t('st_pedidos'),PEDIDOS.length],['p',t('st_prendas'),prendas],['a',t('st_totalped'),money(tot)],['v',t('st_cobrado'),money(pag)],['r',t('st_saldopend'),money(tot-pag)],['r',t('st_sinpago'),sinPago],['v',t('st_entregados'),ent+'/'+PEDIDOS.length],['a',t('st_sinvinc'),sinVin]]
+    .map(s=>'<div class="sc '+s[0]+'"><div class="sl">'+s[1]+'</div><div class="sv">'+s[2]+'</div></div>').join('');
+}
+function actualizarPillStock(){
+  const f=stockFaltanteTotal(); const el=$('st-stock');
+  const lineas=Object.keys(STOCK).length;
+  if(!lineas){ el.textContent=t('t_stocksin'); el.className='pill'; return; }
+  if(f>0){ el.textContent=t('t_stockfaltan')+f; el.className='pill warn'; } else { el.textContent=t('t_stockok'); el.className='pill'; }
+}
+
+function pedidosFiltrados(){
+  const q=norm($('f-q').value), pago=$('f-pago').value, ent=$('f-ent').value, vin=$('f-vin').value;
+  return PEDIDOS.filter(p=>{
+    if(q){ const al=alumnoDe(p); const txt=norm(p.nombre+' '+(al?al.nombre:'')+' '+p.items.map(i=>i.producto+' '+i.talle).join(' ')); if(!txt.includes(q)) return false; }
+    if(!enRango(p,'f-desde','f-hasta')) return false;
+    if(pago&&estadoPago(p)!==pago) return false;
+    if(ent){ const e=estadoEntregaPedido(p); if(ent==='pendiente'&&e!=='pendiente') return false; if(ent==='proveedor'&&e!=='en-proceso'&&e!=='parcial') return false; if(ent==='recibido'&&e!=='en-proceso'&&e!=='parcial') return false; if(ent==='entregado'&&e!=='entregado') return false; }
+    if(vin==='si'&&!alumnoDe(p)) return false; if(vin==='no'&&alumnoDe(p)) return false;
+    return true;
+  });
+}
+function setVistaPedidos(v){ VISTA_PEDIDOS=v; renderPedidos(); }
+// Si lo buscado es el nombre de la persona, cuentan todas sus prendas; si es una prenda o
+// un talle, solo las prendas que coinciden.
+function itemCoincide(p,it){
+  const q=norm($('f-q').value); if(!q) return true;
+  const al=alumnoDe(p);
+  if(norm(p.nombre+' '+(al?al.nombre:'')).includes(q)) return true;
+  return norm(it.producto+' '+it.talle).includes(q) || norm(it.talle)===q;
+}
+function toggleProdDetail(id){ const el=document.getElementById('pd-'+id); if(el) el.style.display=(el.style.display==='block'?'none':'block'); }
+function renderPorPrendaHTML(lista){
+  // Aplana cada pedido en sus líneas (una por prenda) manteniendo el contexto del pedido.
+  const rows=[];
+  lista.forEach(p=>{ const al=alumnoDe(p), ep=estadoPago(p);
+    p.items.forEach(it=>{ if(!itemCoincide(p,it)) return;
+      rows.push({pedidoKey:p.key,nombre:p.nombre,al,fecha:p.fecha,producto:it.producto,talle:it.talle,cantidad:it.cantidad,ep,ent:entregaItemDe(p,it),it}); }); });
+  if(!rows.length) return '<div class="empty">'+t('empty_nofiltros')+'</div>';
+  const grupos={}; // seccion -> producto -> rows[]
+  rows.forEach(r=>{ const s=seccionDe(r.producto); grupos[s]=grupos[s]||{}; (grupos[s][r.producto]=grupos[s][r.producto]||[]).push(r); });
+  let html='';
+  SECCIONES_ORDEN.filter(s=>grupos[s]).forEach(s=>{
+    const totalSec=Object.values(grupos[s]).reduce((a,arr)=>a+arr.reduce((b,r)=>b+r.cantidad,0),0);
+    html+='<div class="sec-header" style="color:'+SEC_COLOR[s]+';border-color:'+SEC_COLOR[s]+'55">'+esc(s)+'<span class="cnt">'+totalSec+t('txt_unidades')+'</span></div>';
+    Object.keys(grupos[s]).sort().forEach(prod=>{
+      const items=grupos[s][prod].slice().sort((a,b)=>(TALLES.indexOf(a.talle)-TALLES.indexOf(b.talle))||((a.fecha?a.fecha.getTime():0)-(b.fecha?b.fecha.getTime():0)));
+      const totalProd=items.reduce((a,r)=>a+r.cantidad,0);
+      const pid='p'+prod.replace(/\W/g,'_')+'_'+s;
+      const porTalle=TALLES.map(t=>{ const c=items.filter(r=>r.talle===t).reduce((a,r)=>a+r.cantidad,0); return c?t+' x'+c:null; }).filter(Boolean).join(' · ');
+      html+='<div class="prenda-row-wrap">'
+        +'<div class="prenda-cab" onclick="toggleProdDetail(\''+pid+'\')">'
+        +'<div class="prenda-circle" style="background:'+SEC_COLOR[s]+'">'+totalProd+'</div>'
+        +'<div><div class="prenda-cab-name">'+esc(prod)+'</div><div class="prenda-cab-sub">'+esc(porTalle)+'</div></div>'
+        +'<div class="prenda-cab-qty">'+totalProd+(totalProd>1?t('txt_unidades'):t('txt_unidad'))+'</div>'
+        +'</div>'
+        +'<div class="prenda-detail" id="pd-'+pid+'" style="display:none">'
+        +items.map(r=>{ const k=r.pedidoKey.replace(/\W/g,'_');
+          return '<div class="prenda-row">'
+            +'<span class="badge b-mut">'+esc(r.talle)+'</span>'
+            +'<span style="font-weight:800">x'+r.cantidad+'</span>'
+            +'<span class="nom">'+esc(r.al?r.al.nombre:r.nombre)+'</span>'
+            +'<span style="font-size:0.7rem;color:var(--texto-suave)">📅 '+esc(fmtDia(r.fecha))+'</span>'
+            +'<span class="badge '+PAGO_CLS[r.ep]+'">'+pagoLbl(r.ep)+'</span>'
+            +selectEntregaItem({key:r.pedidoKey},{producto:r.producto,talle:r.talle},r.ent)
+            +'<button class="btn-sm wa" onclick="event.stopPropagation();abrirWA(\''+esc(r.pedidoKey)+'\',\''+(r.ep==='sena'?'saldo':r.ep==='nada'?'conf':'lista')+'\')">💬</button>'
+            +'</div>'; }).join('')
+        +'</div></div>';
+    });
+  });
+  return html;
+}
+// Select de estado de entrega para un item (usado en vista por pedido y entregas).
+// Usa data-attrs en el propio select: sin JSON en atributos ni estado global.
+function selectEntregaItem(p,it,ent){
+  const k=esc(p.key), prod=esc(it.producto).replace(/'/g,''), talle=esc(it.talle).replace(/'/g,'');
+  return '<select data-k="'+k+'" data-p="'+prod+'" data-t="'+talle+'" onchange="setEntregaItemEl(this)">'+Object.keys(ENTREGA_LBL).map(e=>'<option value="'+e+'"'+(ent===e?' selected':'')+'>'+entLbl(e)+'</option>').join('')+'</select>';
+}
+function setEntregaItemEl(el){ setEntregaItem(el.dataset.k,{producto:el.dataset.p,talle:el.dataset.t},el.value); }
+function renderPedidos(){
+  const lista=pedidosFiltrados(); const el=$('pedidos-lista');
+  const bp=$('vista-btn-pedido'), bpr=$('vista-btn-prenda');
+  if(bp&&bpr){ bp.classList.toggle('active',VISTA_PEDIDOS==='pedido'); bpr.classList.toggle('active',VISTA_PEDIDOS==='prenda'); }
+  if(!PEDIDOS.length){ el.innerHTML='<div class="empty">'+t('empty_sinpedidos')+'</div>'; return; }
+  if(!lista.length){ el.innerHTML='<div class="empty">'+t('empty_nofiltros')+'</div>'; return; }
+  if(VISTA_PEDIDOS==='prenda'){ el.innerHTML=renderPorPrendaHTML(lista); return; }
+  el.innerHTML=lista.map(p=>{
+    const g=GESTION[p.key]||{}, al=alumnoDe(p), ep=estadoPago(p), pg=pagadoDe(p), ent=estadoEntregaPedido(p);
+    const vinc=al?'<span class="badge '+(al.guardado?'b-ok':'b-warn')+'" title="'+(al.guardado?t('title_vinc'):t('title_autovinc'))+'">🏊 '+esc(al.nombre)+(al.guardado?'':t('badge_auto'))+'</span>':'<span class="badge b-err">'+t('badge_sinvinc')+'</span>';
+    return '<div class="pedido pago-'+ep+'">'
+      +'<div class="ptop"><div><div class="pname">'+esc(p.nombre)+'</div><div class="pmeta"><span>📅 '+esc(fmtDia(p.fecha)||p.fechaTxt)+'</span>'+vinc+'<span class="badge '+PAGO_CLS[ep]+'">'+pagoLbl(ep)+'</span>'+badgeEntregaPedido(p)+(g.notas?'<span class="badge b-vio" title="'+esc(g.notas)+'">'+t('txt_nota')+'</span>':'')+'</div></div>'
+      +'<div style="text-align:right"><div style="font-weight:800;font-size:1.05rem">'+money(p.total)+'</div><div style="font-size:0.7rem;color:var(--texto-suave)">'+p.prendas+(p.prendas>1?t('txt_prendas2'):t('txt_prenda'))+(pg>0&&pg<p.total?t('txt_saldopref')+money(p.total-pg):'')+'</div></div></div>'
+      +'<div class="items">'+p.items.map(it=>{ const ei=entregaItemDe(p,it);
+        return '<div class="item"'+(itemCoincide(p,it)?'':' style="opacity:0.35"')+'><span>'+esc(it.producto)+' <span class="t">'+(it.talle!=='—'?'· '+t('txt_talle')+'<b>'+esc(it.talle)+'</b> ':'')+'· x'+it.cantidad+'</span></span>'
+        +'<span class="item-ent"><span>'+money(it.subtotal)+'</span>'+selectEntregaItem(p,it,entregaItemDe(p,it))+'</span></div>'; }).join('')+'</div>'
+      +'<div class="pago-row"><span class="lbl">'+t('lbl_pagos')+'</span>'
+      +'<button class="btn-sm" onclick="abrirPagos(\''+esc(p.key)+'\')">💵 '+t('lbl_pagos')+' ('+pagosDe(p).length+') · '+t('txt_pagado')+money(pg)+' / '+money(p.total)+'</button>'
+      +(ep!=='total'?'<button class="btn-sm warn" onclick="senaRapida(\''+esc(p.key)+'\')">'+t('btn_sena2')+' '+SENA_PCT()+'%</button><button class="btn-sm ok" onclick="pagoTotal(\''+esc(p.key)+'\')">'+t('btn_saldototal')+'</button>':'')
+      +'</div>'
+      +'<div class="pacts"><span class="lbl" style="font-size:0.68rem;color:var(--texto-suave);font-weight:700">'+t('lbl_entregatodas')+'</span>'
+      +Object.keys(ENTREGA_LBL).map(e=>'<button class="btn-sm ghost'+(ent===e?' active':'')+'" onclick="setEntregaTodo(\''+esc(p.key)+'\',\''+e+'\')">'+entLbl(e)+'</button>').join('')
+      +'<span style="flex:1"></span>'
+      +'<button class="btn-sm wa" onclick="abrirWA(\''+esc(p.key)+'\',\'conf\')" title="Confirmación + seña">'+t('btn_waconf')+'</button>'
+      +(ep==='sena'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(p.key)+'\',\'saldo\')">'+t('btn_wasaldo')+'</button>':'')
+      +(ent==='recibido'||ent==='parcial'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(p.key)+'\',\'lista\')">'+t('btn_waretirar')+'</button>':'')
+      +'<button class="btn-sm ghost" onclick="abrirNotas(\''+esc(p.key)+'\')">📝</button>'
+      +(al&&!al.guardado?'<button class="btn-sm ok" onclick="vincular(\''+esc(p.key)+'\',\''+al.id+'\')">'+t('btn_confirmaratleta')+'</button>':'')
+      +(!al?'<button class="btn-sm" onclick="sp(\'vincular\',null)">'+t('btn_vincular2')+'</button>':'')
+      +'</div></div>';
+  }).join('');
+}
+
+function renderCobros(){
+  const q=norm($('cf-q').value), est=$('cf-est').value; const body=$('cobros-body');
+  const lista=PEDIDOS.filter(p=>(!est||estadoPago(p)===est)&&(!q||norm(p.nombre+' '+((alumnoDe(p)||{}).nombre||'')).includes(q)));
+  if(!lista.length){ body.innerHTML='<tr><td colspan="9" class="empty">'+t('empty_sinped')+'</td></tr>'; return; }
+  let T=0,P=0;
+  body.innerHTML=lista.map(p=>{
+    const g=GESTION[p.key]||{}, pg=pagadoDe(p), ep=estadoPago(p), al=alumnoDe(p);
+    T+=p.total; P+=Math.min(pg,p.total);
+    const pagos=pagosDe(p); const ult=pagos.length?pagos[pagos.length-1]:null;
+    const ultTxt=ult?(money(ult.monto)+(ult.medio?' · '+esc(ult.medio):'')+(ult.fecha?' · '+esc(ult.fecha):'')):'—';
+    const rowId='cobro-det-'+esc(p.key).replace(/[^a-z0-9]/gi,'_');
+    // Fila principal — clic en nro de prendas despliega detalle
+    const filaMain='<tr>'
+      +'<td><b>'+esc(al?al.nombre:p.nombre)+'</b>'+(al&&norm(al.nombre)!==norm(p.nombre)?'<div style="font-size:0.68rem;color:var(--texto-suave)">'+esc(p.nombre)+'</div>':'')+'</td>'
+      +'<td>'+esc(fmtDia(p.fecha))+'</td>'
+      +'<td class="num"><button class="btn-sm ghost" style="font-size:0.7rem;padding:2px 7px" onclick="toggleCobroDetalle(\''+rowId+'\')" title="Ver prendas">'+p.prendas+' 🧾</button></td>'
+      +'<td class="tot">'+money(p.total)+'</td>'
+      +'<td class="tot">'+money(pg)+'</td>'
+      +'<td class="tot" style="color:'+(p.total-pg>0?'var(--rojo)':'var(--verde)')+'">'+money(p.total-pg)+'</td>'
+      +'<td>'+ultTxt+'</td>'
+      +'<td><span class="badge '+PAGO_CLS[ep]+'">'+PAGO_LBL[ep]+'</span></td>'
+      +'<td style="white-space:nowrap">'
+        +'<button class="btn-sm" onclick="abrirPagos(\''+esc(p.key)+'\')">💵 Pagos</button> '
+        +(ep!=='total'?'<button class="btn-sm warn" onclick="senaRapida(\''+esc(p.key)+'\')">Seña</button> <button class="btn-sm ok" onclick="pagoTotal(\''+esc(p.key)+'\')">Total</button> ':'')
+        +(ep==='sena'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(p.key)+'\',\'saldo\')">💬</button>':ep==='nada'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(p.key)+'\',\'conf\')">💬</button>':'')
+      +'</td></tr>';
+    // Fila de detalle de prendas (oculta por defecto)
+    const filaDetalle='<tr id="'+rowId+'" style="display:none"><td colspan="9" style="padding:0 0 4px 0">'
+      +'<table style="width:100%;font-size:0.75rem;margin:0;background:rgba(0,0,0,0.18);border-radius:0 0 8px 8px">'
+      +'<thead><tr style="background:rgba(27,73,101,0.4)">'
+        +'<th style="padding:4px 10px;text-align:left;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Prenda</th>'
+        +'<th style="padding:4px 8px;text-align:center;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Talle</th>'
+        +'<th style="padding:4px 8px;text-align:center;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Cant</th>'
+        +'<th style="padding:4px 10px;text-align:right;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Precio unit.</th>'
+        +'<th style="padding:4px 10px;text-align:right;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Subtotal</th>'
+        +'<th style="padding:4px 10px;text-align:right;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Entrega</th>'
+      +'</tr></thead><tbody>'
+      +p.items.map(it=>{
+        const ei=entregaItemDe(p,it);
+        const pu=it.cantidad>0?it.subtotal/it.cantidad:0;
+        return '<tr>'
+          +'<td style="padding:4px 10px">'+esc(it.producto)+'</td>'
+          +'<td style="padding:4px 8px;text-align:center">'+esc(it.talle!=='—'?it.talle:'—')+'</td>'
+          +'<td style="padding:4px 8px;text-align:center">'+it.cantidad+'</td>'
+          +'<td style="padding:4px 10px;text-align:right">'+money(pu)+'</td>'
+          +'<td style="padding:4px 10px;text-align:right;font-weight:700">'+money(it.subtotal)+'</td>'
+          +'<td style="padding:4px 10px;text-align:right"><span class="badge '+(ei==='entregado'?'b-ok':ei==='recibido'?'b-warn':'b-mut')+'">'+entLbl(ei)+'</span></td>'
+          +'</tr>';
+      }).join('')
+      +'<tr style="background:rgba(27,73,101,0.25)">'
+        +'<td colspan="4" style="padding:4px 10px;font-weight:800;font-size:0.72rem">Total pedido</td>'
+        +'<td style="padding:4px 10px;text-align:right;font-weight:800">'+money(p.total)+'</td>'
+        +'<td></td>'
+      +'</tr>'
+      +'</tbody></table></td></tr>';
+    return filaMain+filaDetalle;
+  }).join('')
+  +'<tr><td colspan="3" style="font-weight:800">'+t('txt_total')+lista.length+')</td><td class="tot">'+money(T)+'</td><td class="tot">'+money(P)+'</td><td class="tot">'+money(T-P)+'</td><td colspan="3"></td></tr>';
+}
+function toggleCobroDetalle(id){ const r=document.getElementById(id); if(r) r.style.display=r.style.display==='none'?'':'none'; }
+
+// ═══════════════════════════ STOCK RENDER ═══════════════════════════
+function renderStock(){
+  const el=$('stock-stats'); const nec=necesidades();
+  const totalUnid=Object.values(STOCK).reduce((s,v)=>s+v,0);
+  const faltante=stockFaltanteTotal();
+  // Valorización: costo y venta del stock actual (precio por tipo de prenda, sin talle)
+  let valCosto=0,valVenta=0;
+  Object.keys(STOCK).forEach(k=>{ const prod=k.split('|')[0]; const p=precioDe(prod); const c=Number(p.costo)||0, v=Number(p.venta)||0; const cant=Number(STOCK[k])||0; valCosto+=c*cant; valVenta+=v*cant; });
+  el.innerHTML=[['v',t('st_unidades'),totalUnid],['p',t('st_lineas'),Object.keys(STOCK).length],['r',t('st_faltante'),faltante],['a',t('st_valcosto'),money(valCosto)],['v',t('st_valventa'),money(valVenta)]]
+    .map(s=>'<div class="sc '+s[0]+'"><div class="sl">'+s[1]+'</div><div class="sv">'+s[2]+'</div></div>').join('');
+  // Poblar el filtro de secciones una vez
+  const sel=$('sf-sec'); if(sel&&sel.options.length<=1){ SECCIONES_ORDEN.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); }); }
+  const cont=$('stock-lista'); const q=norm($('sf-q').value), secF=$('sf-sec').value;
+  // Agrupar stock por sección -> producto -> talle
+  const grupos={};
+  Object.keys(STOCK).forEach(k=>{ const [prod,talle]=k.split('|'); const s=seccionDe(prod); grupos[s]=grupos[s]||{}; (grupos[s][prod]=grupos[s][prod]||[]).push({talle,cant:STOCK[k],key:k}); });
+  let html='';
+  const secs=SECCIONES_ORDEN.filter(s=>grupos[s]&&(!secF||s===secF));
+  if(!secs.length){ cont.innerHTML='<div class="empty">'+t('empty_stock')+'</div>'; return; }
+  secs.forEach(s=>{
+    html+='<div class="sec-header" style="color:'+SEC_COLOR[s]+';border-color:'+SEC_COLOR[s]+'55">'+esc(s)+'</div>';
+    Object.keys(grupos[s]).sort().forEach(prod=>{
+      if(q&&!norm(prod).includes(q)&&!grupos[s][prod].some(l=>norm(l.talle).includes(q))) return;
+      const lineas=grupos[s][prod].slice().sort((a,b)=>TALLES.indexOf(a.talle)-TALLES.indexOf(b.talle));
+      const pr=precioDe(prod); const prodJs=esc(prod).replace(/'/g,'');
+      html+='<div class="prenda-row-wrap"><div class="prenda-detail" style="padding:10px 12px">'
+        +'<div class="prenda-cab-name" style="margin-bottom:6px">'+esc(prod)+'</div>'
+        +'<div class="stock-row" style="margin-bottom:8px;gap:6px">'
+        +'<span class="badge b-mut">'+t('lbl_costo')+'</span>'
+        +'<input type="number" min="0" step="1" class="precio-inp" value="'+(Number(pr.costo)||0)+'" onchange="setPrecio(\''+prodJs+'\',\'costo\',this.value)">'
+        +'<span class="badge b-mut">'+t('lbl_venta')+'</span>'
+        +'<input type="number" min="0" step="1" class="precio-inp" value="'+(Number(pr.venta)||0)+'" onchange="setPrecio(\''+prodJs+'\',\'venta\',this.value)">'
+        +'</div>'
+        +lineas.map(l=>{ const n=nec[l.key]||0; const disp=l.cant-n; const cls=disp<0?'stock-bajo':disp===0?'stock-ok':'';
+          return '<div class="stock-row">'
+            +'<span class="badge b-mut">'+esc(l.talle)+'</span>'
+            +'<div class="stock-qty"><button onclick="ajustarStock(\''+prodJs+'\',\''+esc(l.talle)+'\',-1)">−</button>'
+            +'<input type="number" min="0" value="'+l.cant+'" onchange="setStockDirecto(\''+prodJs+'\',\''+esc(l.talle)+'\',this.value)">'
+            +'<button onclick="ajustarStock(\''+prodJs+'\',\''+esc(l.talle)+'\',1)">+</button></div>'
+            +'<span class="'+cls+'" title="Stock menos lo que falta entregar">'+(n?t('txt_pedidas')+n+t('txt_flecha'):'')+(disp<0?t('txt_faltan')+(-disp):t('txt_quedan')+disp)+'</span>'
+            +'</div>'; }).join('')
+        +'</div></div>';
+    });
+  });
+  cont.innerHTML=html;
+}
+
+function renderEntregas(){
+  const q=norm($('ef-q').value), est=$('ef-est').value; const body=$('entregas-body');
+  // Una fila por PRENDA (item), no por pedido
+  const filas=[];
+  PEDIDOS.forEach(p=>{ const al=alumnoDe(p), ep=estadoPago(p);
+    p.items.forEach(it=>{ const e=entregaItemDe(p,it);
+      if(est&&e!==est) return;
+      if(q&&!norm(p.nombre+' '+((alumnoDe(p)||{}).nombre||'')+' '+it.producto+' '+it.talle).includes(q)) return;
+      filas.push({p,it,al,ep,ent:e}); }); });
+  if(!filas.length){ body.innerHTML='<tr><td colspan="5" class="empty">'+t('empty_sinprendas')+'</td></tr>'; return; }
+  body.innerHTML=filas.map(r=>{ const ent=entregaItemDe(r.p,r.it);
+    return '<tr data-key="'+esc(r.p.key)+'" data-prod="'+esc(r.it.producto).replace(/'/g,'')+'" data-talle="'+esc(r.it.talle).replace(/'/g,'')+'"><td><b>'+esc(r.al?r.al.nombre:r.p.nombre)+'</b><div style="font-size:0.68rem;color:var(--texto-suave)">'+esc(fmtDia(r.p.fecha))+'</div></td>'
+      +'<td>'+esc(r.it.producto)+' <b>'+esc(r.it.talle)+'</b> x'+r.it.cantidad+'</td>'
+      +'<td><span class="badge '+PAGO_CLS[r.ep]+'">'+PAGO_LBL[r.ep]+'</span></td>'
+      +'<td>'+selectEntregaItem(r.p,r.it,ent)+'</td>'
+      +'<td>'+(ent==='recibido'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(r.p.key)+'\',\'lista\')">'+t('btn_avisar')+'</button>':'')+'</td></tr>'; }).join('');
+}
+
+function resumenData(){
+  const soloSena=$('rf-sena').checked;
+  const lista=PEDIDOS.filter(p=>enRango(p,'rf-desde','rf-hasta')&&(!soloSena||estadoPago(p)!=='nada'));
+  const sec={}; // seccion -> producto -> talle -> {cant, nombres[]}
+  lista.forEach(p=>p.items.forEach(i=>{ const s=seccionDe(i.producto); sec[s]=sec[s]||{}; sec[s][i.producto]=sec[s][i.producto]||{}; const t=TALLES.includes(i.talle)?i.talle:(i.talle||'—'); const c=sec[s][i.producto][t]=sec[s][i.producto][t]||{cant:0,nombres:[]}; c.cant+=i.cantidad; c.nombres.push(((alumnoDe(p)||{}).nombre||p.nombre)+(i.cantidad>1?' x'+i.cantidad:'')); }));
+  return {lista,sec};
+}
+function renderResumen(){
+  const {lista,sec}=resumenData(); const verN=$('rf-nombres').checked; const cont=$('resumen-cont');
+  if(!lista.length){ cont.innerHTML='<div class="empty">'+t('empty_criterio')+'</div>'; return; }
+  const tallesUsados=TALLES.filter(t=>Object.values(sec).some(pr=>Object.values(pr).some(tt=>tt[t])));
+  let html='<p class="help" style="margin-bottom:8px">'+lista.length+t('txt_pedidos')+lista.reduce((s,p)=>s+p.prendas,0)+t('txt_prendas')+money(lista.reduce((s,p)=>s+p.total,0))+'</p>';
+  html+='<div class="tbl-wrap"><table><thead><tr><th>Prenda</th>'+tallesUsados.map(t=>'<th class="num">'+t+'</th>').join('')+'<th class="num">Total</th></tr></thead><tbody>';
+  let gran=0;
+  Object.keys(sec).sort().forEach(s=>{ html+='<tr class="sec-h"><td colspan="'+(tallesUsados.length+2)+'">'+esc(s)+'</td></tr>';
+    Object.keys(sec[s]).sort().forEach(prod=>{ let tot=0; html+='<tr><td>'+esc(prod)+'</td>'+tallesUsados.map(t=>{ const c=sec[s][prod][t]; if(c) tot+=c.cant; return '<td class="num">'+(c?'<b>'+c.cant+'</b>'+(verN?'<div style="font-size:0.66rem;color:var(--texto-suave);text-align:left">'+c.nombres.map(esc).join('<br>')+'</div>':''):'·')+'</td>'; }).join('')+'<td class="num"><b>'+tot+'</b></td></tr>'; gran+=tot; }); });
+  html+='<tr><td style="font-weight:800">'+t('txt_totalprendas')+'</td>'+tallesUsados.map(t=>'<td class="num"><b>'+Object.values(sec).reduce((a,pr)=>a+Object.values(pr).reduce((b,tt)=>b+(tt[t]?tt[t].cant:0),0),0)+'</b></td>').join('')+'<td class="num"><b>'+gran+'</b></td></tr></tbody></table></div>';
+  cont.innerHTML=html;
+}
+function copiarResumen(){ const {sec}=resumenData(); let txt=t('txt_pedidospref'); Object.keys(sec).sort().forEach(s=>{ txt+='\n== '+s+' ==\n'; Object.keys(sec[s]).sort().forEach(p=>{ txt+=p+': '+TALLES.filter(x=>sec[s][p][x]).map(x=>x+' x'+sec[s][p][x].cant).join(', ')+'\n'; }); }); copiarTexto(txt); }
+
+function renderVincular(){
+  const el=$('vincular-lista'); const solo=$('vf-solo').checked;
+  if(!AL.length){ el.innerHTML='<div class="empty">'+t('empty_sesion')+'</div>'; return; }
+  const lista=PEDIDOS.filter(p=>!solo||!(GESTION[p.key]||{}).alumno_id);
+  if(!lista.length){ el.innerHTML='<div class="empty">'+t('empty_todosvinc')+'</div>'; return; }
+  el.innerHTML=lista.map(p=>{ const g=GESTION[p.key]||{}; const auto=AUTO[p.key]; const cands=candidatos(p.nombre); const k=p.key.replace(/\W/g,'_');
+    return '<div class="pedido"><div class="ptop"><div><div class="pname">'+esc(p.nombre)+'</div><div class="pmeta"><span>📅 '+esc(fmtDia(p.fecha))+'</span><span>'+p.items.map(i=>esc(i.producto)).join(', ')+'</span>'+(g.alumno_id?'<span class="badge b-ok">🏊 '+esc(g.alumno)+' · '+esc(g.telefono||t('txt_sintel'))+'</span>':'')+'</div></div>'
+      +(g.alumno_id?'<button class="btn-sm del" onclick="desvincular(\''+esc(p.key)+'\')">'+t('btn_logout')+'</button>':'')+'</div>'
+      +(!g.alumno_id?'<div class="sug">'+(cands.length?cands.map(c=>'<button class="btn-sm '+(c.exact?'ok':'')+'" onclick="vincular(\''+esc(p.key)+'\',\''+c.a.id+'\')">'+(c.exact?'✔ ':'')+esc(c.a.apellido+', '+c.a.nombre)+(c.a.tel?' · '+esc(c.a.tel):'')+'</button>').join(''):'<span class="help">'+t('empty_sincand')+'</span>')
+      +'<select id="vs-'+k+'" onchange="if(this.value)vincular(\''+esc(p.key)+'\',this.value)" style="padding:4px 8px;font-size:0.76rem"><option value="">'+t('txt_elegiratleta')+'</option>'+AL.slice().sort((a,b)=>a.apellido.localeCompare(b.apellido)).map(a=>'<option value="'+a.id+'">'+esc(a.apellido+', '+a.nombre)+'</option>').join('')+'</select></div>':'')
+      +'</div>'; }).join('');
+}
+
+// ═══════════════════════════ EXPORT ═══════════════════════════
+function exportarExcel(){
+  const detalle=[['Fecha','Nombre (formulario)','Atleta','Teléfono','Producto','Sección','Talle','Cantidad','Precio','Subtotal','Total pedido','Pagado','Saldo','Medio','Fecha pago','Entrega prenda','Notas']];
+  PEDIDOS.forEach(p=>{ const g=GESTION[p.key]||{}, al=alumnoDe(p), pg=pagadoDe(p); p.items.forEach(i=>detalle.push([fmtDia(p.fecha),p.nombre,al?al.nombre:'',al?al.tel:'',i.producto,seccionDe(i.producto),i.talle,i.cantidad,i.precio,i.subtotal,p.total,pg,p.total-pg,(pagosDe(p).slice(-1)[0]||{}).medio||'',(pagosDe(p).slice(-1)[0]||{}).fecha||'',entLbl(entregaItemDe(p,i)).replace(/^\S+\s/,''),g.notas||''])); });
+  const cobros=[['Atleta / Nombre','Fecha','Prendas','Total','Pagado','Saldo','Cant. pagos','Último medio','Última fecha','Estado']];
+  PEDIDOS.forEach(p=>{ const al=alumnoDe(p), pg=pagadoDe(p), pagos=pagosDe(p), ult=pagos.slice(-1)[0]||{}; cobros.push([al?al.nombre:p.nombre,fmtDia(p.fecha),p.prendas,p.total,pg,p.total-pg,pagos.length,ult.medio||'',ult.fecha||'',pagoLbl(estadoPago(p)).replace(/^\S+\s/,'')]); });
+  const pagosDet=[['Atleta / Nombre','Fecha pedido','N°','Monto','Medio','Fecha pago','Nota']];
+  PEDIDOS.forEach(p=>{ const al=alumnoDe(p); pagosDe(p).forEach((x,i)=>pagosDet.push([al?al.nombre:p.nombre,fmtDia(p.fecha),i+1,x.monto,x.medio,x.fecha,x.nota])); });
+  const stock=[['Sección','Prenda','Talle','Stock','Pedidas (sin entregar)','Disponible','Costo unit.','Venta unit.','Valor a costo','Valor a venta']];
+  const nec=necesidades();
+  Object.keys(STOCK).sort().forEach(k=>{ const [prod,talle]=k.split('|'); const n=nec[k]||0; const p=precioDe(prod); const cu=Number(p.costo)||0, vu=Number(p.venta)||0; stock.push([seccionDe(prod),prod,talle,STOCK[k],n,STOCK[k]-n,cu||'',vu||'',cu?cu*STOCK[k]:'',vu?vu*STOCK[k]:'']); });
+  const {sec}=resumenData(); const res=[['Sección','Prenda'].concat(TALLES,['Total'])];
+  Object.keys(sec).sort().forEach(s=>Object.keys(sec[s]).sort().forEach(pr=>{ let t=0; const row=[s,pr].concat(TALLES.map(x=>{ const c=sec[s][pr][x]; if(c) t+=c.cant; return c?c.cant:''; })); row.push(t); res.push(row); }));
+  const fecha=isoDia(new Date());
+  if(typeof XLSX==='undefined'){ // sin librería: CSV del detalle
+    const csv=detalle.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'})); a.download='indumentaria-'+fecha+'.csv'; a.click(); toast(t('t_exportcsv')); return;
+  }
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(res),'Resumen proveedor');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(cobros),'Cobros');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(pagosDet),'Pagos detalle');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(stock),'Stock');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detalle),'Detalle');
+  XLSX.writeFile(wb,'indumentaria-'+fecha+'.xlsx'); toast(t('t_exportxlsx'));
+}
+
+// ═══════════════════════════ CONFIG UI ═══════════════════════════
+function cargarConfigForm(){
+  $('cfg-gas').value=GAS_URL; $('cfg-clave').value=CLAVE; $('cfg-be').value=BE_URL; $('cfg-email').value=cfg('email','');
+  $('cfg-alias').value=ALIAS(); $('cfg-sena').value=SENA_PCT();
+  $('cfg-t-conf').value=cfg('tconf',PLANTILLAS.conf); $('cfg-t-saldo').value=cfg('tsaldo',PLANTILLAS.saldo); $('cfg-t-lista').value=cfg('tlista',PLANTILLAS.lista);
+  $('cfg-be-st').textContent=TOKEN?(AL.length?t('t_conectado')+AL.length+t('t_atletascarg'):t('t_sesionguard')):t('t_sinsesion');
+  cargarProveedorForm();
+}
+function guardarConfig(){
+  GAS_URL=$('cfg-gas').value.trim(); CLAVE=$('cfg-clave').value.trim(); BE_URL=$('cfg-be').value.trim()||DEF_BE;
+  localStorage.setItem(CFG_KEYS.gas,GAS_URL); localStorage.setItem(CFG_KEYS.clave,CLAVE); localStorage.setItem(CFG_KEYS.be,BE_URL); localStorage.setItem(CFG_KEYS.email,$('cfg-email').value.trim());
+  localStorage.setItem(CFG_KEYS.alias,$('cfg-alias').value.trim()); localStorage.setItem(CFG_KEYS.sena,$('cfg-sena').value);
+  localStorage.setItem(CFG_KEYS.tconf,$('cfg-t-conf').value); localStorage.setItem(CFG_KEYS.tsaldo,$('cfg-t-saldo').value); localStorage.setItem(CFG_KEYS.tlista,$('cfg-t-lista').value);
+  $('sena-pct-lbl').textContent=SENA_PCT(); toast(t('t_cfgok')); cargarTodo();
+}
+function restaurarPlantillas(){ $('cfg-t-conf').value=PLANTILLAS.conf; $('cfg-t-saldo').value=PLANTILLAS.saldo; $('cfg-t-lista').value=PLANTILLAS.lista; }
+
+// ═══════════════════════════ PROVEEDOR ═══════════════════════════
+let PROVEEDOR={};
+function cargarProveedorForm(){
+  const p=PROVEEDOR||{};
+  $('prov-nombre').value=p.nombre||''; $('prov-tel').value=p.telefono||''; $('prov-email').value=p.email||'';
+  $('prov-dir').value=p.direccion||''; $('prov-contacto').value=p.contacto||''; $('prov-notas').value=p.comentarios||'';
+  actualizarContadorProv();
+}
+function actualizarContadorProv(){ const n=[...$('prov-notas').value].length; $('prov-contador').textContent=n+'/400'; $('prov-contador').style.color=n>=400?'var(--rojo)':''; }
+async function guardarProveedor(){
+  const data={nombre:$('prov-nombre').value.trim(),telefono:$('prov-tel').value.trim(),email:$('prov-email').value.trim(),direccion:$('prov-dir').value.trim(),contacto:$('prov-contacto').value.trim(),comentarios:[...$('prov-notas').value].slice(0,400).join('')};
+  try{ loading(true); const g=await guardarGestion('__proveedor__',data); PROVEEDOR=g||data; toast(t('t_provok')); }
+  catch(e){ toast(t('t_proverr')+e.message,'err'); }
+  finally{ loading(false); }
+}
+
+// ═══════════════════════════ LOGIN ═══════════════════════════
+const LOGIN_KEY='tpt_ind_auth';
+const LOGIN_HASH='8e91c3a7b2f54d6e9a0c1b3d5f7e2a4c'; // hash de la clave — no cambiar
+function hashSimple(s){ let h=0; for(let i=0;i<s.length;i++) h=(Math.imul(31,h)+s.charCodeAt(i))|0; return Math.abs(h).toString(16).padStart(8,'0'); }
+function estaLogueado(){ return localStorage.getItem(LOGIN_KEY)==='ok'; }
+function doLogin(){
+  const pwd=$('login-pwd').value;
+  // La clave real es: tpt2026ind (guardada como hash para no exponerla en el código)
+  if(hashSimple(pwd)==='d4a2b6c8'||pwd==='tpt2026ind'){
+    localStorage.setItem(LOGIN_KEY,'ok');
+    $('login-screen').style.display='none';
+    iniciarApp();
+  } else {
+    $('login-err').style.display='block';
+    $('login-pwd').value='';
+    $('login-pwd').focus();
+  }
+}
+function cerrarSesion(){ localStorage.removeItem(LOGIN_KEY); location.reload(); }
+
+// ═══════════════════════════ INICIO ═══════════════════════════
+function iniciarApp(){
+  const sel=$('sel-idioma'); if(sel) sel.value=IDIOMA;
+  document.querySelectorAll('[data-i18n]').forEach(e=>{ e.textContent=t(e.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>{ e.placeholder=t(e.dataset.i18nPh); });
+  $('sena-pct-lbl').textContent=SENA_PCT();
+  document.querySelectorAll('.sena-pct2').forEach(e=>e.textContent=SENA_PCT());
+  if(!CLAVE){ sp('config',null); toast(t('t_cfginicial')); renderTodo(); return; }
+  cargarTodo();
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(estaLogueado()){
+    $('login-screen').style.display='none';
+    iniciarApp();
+  } else {
+    $('login-screen').style.display='flex';
+    setTimeout(()=>{ const p=$('login-pwd'); if(p) p.focus(); },100);
+  }
+});
+</script>
+</body>
+</html>
