@@ -1158,16 +1158,24 @@ function renderEntregas(){
   // Una fila por PRENDA (item), no por pedido
   const filas=[];
   PEDIDOS.forEach(p=>{ const al=alumnoDe(p), ep=estadoPago(p);
+    const pedAnulado=estadoEntregaPedido(p)==='anulado';
+    // Ocultar items de pedidos anulados salvo que se filtre por 'anulado'
+    if(pedAnulado&&est!=='anulado') return;
+    if(est==='anulado'&&!pedAnulado) return;
     p.items.forEach(it=>{ const e=entregaItemDe(p,it);
-      if(est&&e!==est) return;
+      if(est&&est!=='anulado'&&e!==est) return;
       if(q&&!norm(p.nombre+' '+((alumnoDe(p)||{}).nombre||'')+' '+it.producto+' '+it.talle).includes(q)) return;
-      filas.push({p,it,al,ep,ent:e}); }); });
+      filas.push({p,it,al,ep,ent:pedAnulado?'anulado':e}); }); });
   if(!filas.length){ body.innerHTML='<tr><td colspan="5" class="empty">'+t('empty_sinprendas')+'</td></tr>'; return; }
-  body.innerHTML=filas.map(r=>{ const ent=entregaItemDe(r.p,r.it); const fechaEnt=fechaEntregaItemDe(r.p,r.it);
-    return '<tr data-key="'+esc(r.p.key)+'" data-prod="'+esc(r.it.producto).replace(/'/g,'')+'" data-talle="'+esc(r.it.talle).replace(/'/g,'')+'"><td><b>'+esc(r.al?r.al.nombre:r.p.nombre)+'</b><div style="font-size:0.68rem;color:var(--texto-suave)">Pedido: '+esc(fmtDia(r.p.fecha))+'</div></td>'
-      +'<td>'+esc(r.it.producto)+' <b>'+esc(r.it.talle)+'</b> x'+r.it.cantidad+'</td>'
+  body.innerHTML=filas.map(r=>{ const ent=r.ent; const fechaEnt=fechaEntregaItemDe(r.p,r.it);
+    const entCeld=ent==='anulado'
+      ?'<span class="badge b-err">🚫 Anulado</span>'
+      :selectEntregaItem(r.p,r.it,ent)+'<div style="font-size:0.65rem;color:var(--texto-suave);margin-top:2px">'+(fechaEnt?'📅 '+esc(fmtDia(fechaEnt)):'')+'</div>';
+    return '<tr data-key="'+esc(r.p.key)+'" data-prod="'+esc(r.it.producto).replace(/'/g,'')+'" data-talle="'+esc(r.it.talle).replace(/'/g,'')+(ent==='anulado'?' style="opacity:0.55"':'')+'">'
+      +'<td><b>'+esc(r.al?r.al.nombre:r.p.nombre)+'</b><div style="font-size:0.68rem;color:var(--texto-suave)">Pedido: '+esc(fmtDia(r.p.fecha))+'</div></td>'
+      +'<td>'+(ent==='anulado'?'<s>':'')+esc(r.it.producto)+' <b>'+esc(r.it.talle)+'</b> x'+r.it.cantidad+(ent==='anulado'?'</s>':'')+'</td>'
       +'<td><span class="badge '+PAGO_CLS[r.ep]+'">'+PAGO_LBL[r.ep]+'</span></td>'
-      +'<td>'+selectEntregaItem(r.p,r.it,ent)+'<div style="font-size:0.65rem;color:var(--texto-suave);margin-top:2px">'+(fechaEnt?'📅 '+esc(fmtDia(fechaEnt)):'')+'</div></td>'
+      +'<td>'+entCeld+'</td>'
       +'<td>'+(ent==='recibido'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(r.p.key)+'\',\'lista\')">'+t('btn_avisar')+'</button>':'')+'</td></tr>'; }).join('');
 }
 
