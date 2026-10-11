@@ -736,7 +736,8 @@ function entregaDe(p){ const g=GESTION[p.key]; return (g&&g.entrega)||'pendiente
 // GESTION[key].items = { itemKey: {entrega} }. Si un item no tiene estado propio,
 // hereda el estado general del pedido (compatibilidad con lo ya cargado).
 function entregaItemDe(p,it){ const g=GESTION[p.key]; const ie=g&&g.items&&g.items[itemKeyOf(it.producto,it.talle)]; return (ie&&ie.entrega)||entregaDe(p); }
-function setEntregaItem(key,it,est){ const g=GESTION[key]||{}; const items=Object.assign({},g.items||{}); items[itemKeyOf(it.producto,it.talle)]=Object.assign({},items[itemKeyOf(it.producto,it.talle)]||{},{entrega:est}); guardarGestion(key,{items}); }
+function fechaEntregaItemDe(p,it){ const g=GESTION[p.key]; const ie=g&&g.items&&g.items[itemKeyOf(it.producto,it.talle)]; return (ie&&ie.fecha_entrega)||''; }
+function setEntregaItem(key,it,est){ const g=GESTION[key]||{}; const items=Object.assign({},g.items||{}); const ik=itemKeyOf(it.producto,it.talle); const prev=items[ik]||{}; items[ik]=Object.assign({},prev,{entrega:est,fecha_entrega:isoDia(new Date())}); guardarGestion(key,{items}); }
 function pedidoEntregadoCompleto(p){ return p.items.every(it=>entregaItemDe(p,it)==='entregado'); }
 // Estado "resumido" del pedido según sus prendas (para badges y filtros)
 function estadoEntregaPedido(p){
@@ -786,7 +787,7 @@ function senaRapida(key){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; s
 function pagoTotal(key){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; const ya=pagadoDe(p); const saldo=Math.max(0,p.total-ya); if(saldo<=0){ toast(t('t_yapagado')); return; } setPago(key,saldo,'',isoDia(new Date())); toast(t('t_saldoreg')+money(saldo)); }
 function setEntrega(key,est){ guardarGestion(key,{entrega:est}); }
 // Cambia el estado de TODAS las prendas del pedido (equivale al estado general)
-function setEntregaTodo(key,est){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; const items={}; p.items.forEach(it=>{ items[itemKeyOf(it.producto,it.talle)]={entrega:est}; }); guardarGestion(key,{items,entrega:est}); }
+function setEntregaTodo(key,est){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; const hoy=isoDia(new Date()); const prevItems=(GESTION[key]||{}).items||{}; const items={}; p.items.forEach(it=>{ const ik=itemKeyOf(it.producto,it.talle); items[ik]=Object.assign({},prevItems[ik]||{},{entrega:est,fecha_entrega:hoy}); }); guardarGestion(key,{items,entrega:est}); }
 async function entregaMasiva(est){ const filas=[...document.querySelectorAll('#entregas-body tr[data-key]')].map(t=>({key:t.dataset.key,prod:t.dataset.prod,talle:t.dataset.talle})).filter(f=>f.prod); if(!filas.length) return; if(!confirm(t('c_masiva')+filas.length+t('c_masiva2')+entLbl(est)+t('c_masiva3'))) return; for(const f of filas) await guardarGestion(f.key,{items:Object.assign({},(GESTION[f.key]||{}).items||{},{[itemKeyOf(f.prod,f.talle)]:{entrega:est}})}); toast('✅ '+filas.length+t('t_actualizadas')); }
 
 // ═══════════════════════════ STOCK ═══════════════════════════
@@ -983,9 +984,9 @@ function renderPedidos(){
     return '<div class="pedido pago-'+ep+'">'
       +'<div class="ptop"><div><div class="pname">'+esc(p.nombre)+'</div><div class="pmeta"><span>📅 '+esc(fmtDia(p.fecha)||p.fechaTxt)+'</span>'+vinc+'<span class="badge '+PAGO_CLS[ep]+'">'+pagoLbl(ep)+'</span>'+badgeEntregaPedido(p)+(g.notas?'<span class="badge b-vio" title="'+esc(g.notas)+'">'+t('txt_nota')+'</span>':'')+'</div></div>'
       +'<div style="text-align:right"><div style="font-weight:800;font-size:1.05rem">'+money(p.total)+'</div><div style="font-size:0.7rem;color:var(--texto-suave)">'+p.prendas+(p.prendas>1?t('txt_prendas2'):t('txt_prenda'))+(pg>0&&pg<p.total?t('txt_saldopref')+money(p.total-pg):'')+'</div></div></div>'
-      +'<div class="items">'+p.items.map(it=>{ const ei=entregaItemDe(p,it);
-        return '<div class="item"'+(itemCoincide(p,it)?'':' style="opacity:0.35"')+'><span>'+esc(it.producto)+' <span class="t">'+(it.talle!=='—'?'· '+t('txt_talle')+'<b>'+esc(it.talle)+'</b> ':'')+'· x'+it.cantidad+'</span></span>'
-        +'<span class="item-ent"><span>'+money(it.subtotal)+'</span>'+selectEntregaItem(p,it,entregaItemDe(p,it))+'</span></div>'; }).join('')+'</div>'
+      +'<div class="items">'+p.items.map(it=>{ const ei=entregaItemDe(p,it); const fechaEnt=fechaEntregaItemDe(p,it);
+        return '<div class="item"'+(itemCoincide(p,it)?'':' style="opacity:0.35"')+'><span>'+esc(it.producto)+' <span class="t">'+(it.talle!=='—'?'· '+t('txt_talle')+'<b>'+esc(it.talle)+'</b> ':'')+'· x'+it.cantidad+'</span>'+(fechaEnt?'<span style="font-size:0.63rem;color:var(--texto-suave);margin-left:4px">📅 '+esc(fmtDia(fechaEnt))+'</span>':'')+'</span>'
+        +'<span class="item-ent"><span>'+money(it.subtotal)+'</span>'+selectEntregaItem(p,it,ei)+'</span></div>'; }).join('')+'</div>'
       +'<div class="pago-row"><span class="lbl">'+t('lbl_pagos')+'</span>'
       +'<button class="btn-sm" onclick="abrirPagos(\''+esc(p.key)+'\')">💵 '+t('lbl_pagos')+' ('+pagosDe(p).length+') · '+t('txt_pagado')+money(pg)+' / '+money(p.total)+'</button>'
       +(ep!=='total'?'<button class="btn-sm warn" onclick="senaRapida(\''+esc(p.key)+'\')">'+t('btn_sena2')+' '+SENA_PCT()+'%</button><button class="btn-sm ok" onclick="pagoTotal(\''+esc(p.key)+'\')">'+t('btn_saldototal')+'</button>':'')
@@ -1030,32 +1031,47 @@ function renderCobros(){
         +(ep==='sena'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(p.key)+'\',\'saldo\')">💬</button>':ep==='nada'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(p.key)+'\',\'conf\')">💬</button>':'')
       +'</td></tr>';
     // Fila de detalle de prendas (oculta por defecto)
+    // Calcular saldo proporcional por prenda y lo pagado hasta ahora
+    const pgTotal=pagadoDe(p);
+    const saldoPedido=Math.max(0,p.total-pgTotal);
+    // Seña asignada al pedido completo; saldo se cobra prenda por prenda al entregar
     const filaDetalle='<tr id="'+rowId+'" style="display:none"><td colspan="9" style="padding:0 0 4px 0">'
       +'<table style="width:100%;font-size:0.75rem;margin:0;background:rgba(0,0,0,0.18);border-radius:0 0 8px 8px">'
       +'<thead><tr style="background:rgba(27,73,101,0.4)">'
         +'<th style="padding:4px 10px;text-align:left;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Prenda</th>'
         +'<th style="padding:4px 8px;text-align:center;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Talle</th>'
         +'<th style="padding:4px 8px;text-align:center;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Cant</th>'
-        +'<th style="padding:4px 10px;text-align:right;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Precio unit.</th>'
         +'<th style="padding:4px 10px;text-align:right;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Subtotal</th>'
-        +'<th style="padding:4px 10px;text-align:right;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Entrega</th>'
+        +'<th style="padding:4px 10px;text-align:right;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Saldo prenda</th>'
+        +'<th style="padding:4px 10px;text-align:center;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Estado · Fecha</th>'
+        +'<th style="padding:4px 10px;text-align:center;color:var(--texto-suave);font-size:0.65rem;text-transform:uppercase">Cobro</th>'
       +'</tr></thead><tbody>'
       +p.items.map(it=>{
         const ei=entregaItemDe(p,it);
-        const pu=it.cantidad>0?it.subtotal/it.cantidad:0;
+        const fechaEnt=fechaEntregaItemDe(p,it);
+        // Saldo proporcional de esta prenda = (subtotal/total)*saldoPedido
+        const saldoProportional=p.total>0?Math.round(it.subtotal/p.total*saldoPedido):0;
+        const itemPagada=(GESTION[p.key]||{}).items_pagados&&(GESTION[p.key].items_pagados[itemKeyOf(it.producto,it.talle)]);
+        const saldoRestante=itemPagada?0:saldoProportional;
         return '<tr>'
           +'<td style="padding:4px 10px">'+esc(it.producto)+'</td>'
           +'<td style="padding:4px 8px;text-align:center">'+esc(it.talle!=='—'?it.talle:'—')+'</td>'
           +'<td style="padding:4px 8px;text-align:center">'+it.cantidad+'</td>'
-          +'<td style="padding:4px 10px;text-align:right">'+money(pu)+'</td>'
           +'<td style="padding:4px 10px;text-align:right;font-weight:700">'+money(it.subtotal)+'</td>'
-          +'<td style="padding:4px 10px;text-align:right"><span class="badge '+(ei==='entregado'?'b-ok':ei==='recibido'?'b-warn':'b-mut')+'">'+entLbl(ei)+'</span></td>'
+          +'<td style="padding:4px 10px;text-align:right;color:'+(saldoRestante>0?'var(--rojo)':'var(--verde)')+';font-weight:700">'+(saldoRestante>0?money(saldoRestante):'✅ Cobrado')+'</td>'
+          +'<td style="padding:4px 10px;text-align:center"><span class="badge '+(ei==='entregado'?'b-ok':ei==='recibido'?'b-warn':'b-mut')+'">'+entLbl(ei)+'</span>'+(fechaEnt?'<div style="font-size:0.65rem;color:var(--texto-suave)">'+esc(fmtDia(fechaEnt))+'</div>':'')+'</td>'
+          +'<td style="padding:4px 8px;text-align:center">'
+            +(saldoRestante>0&&saldoPedido>0
+              ?'<button class="btn-sm ok" style="font-size:0.65rem;padding:2px 6px" onclick="cobrarSaldoPrenda(\''+esc(p.key)+'\',\''+esc(it.producto)+'\',\''+esc(it.talle)+'\','+saldoRestante+')">💵 '+money(saldoRestante)+'</button>'
+              :(saldoPedido===0?'<span style="color:var(--verde);font-size:0.7rem">✅</span>':'—'))
+          +'</td>'
           +'</tr>';
       }).join('')
       +'<tr style="background:rgba(27,73,101,0.25)">'
-        +'<td colspan="4" style="padding:4px 10px;font-weight:800;font-size:0.72rem">Total pedido</td>'
+        +'<td colspan="3" style="padding:4px 10px;font-weight:800;font-size:0.72rem">Total pedido</td>'
         +'<td style="padding:4px 10px;text-align:right;font-weight:800">'+money(p.total)+'</td>'
-        +'<td></td>'
+        +'<td style="padding:4px 10px;text-align:right;font-weight:800;color:'+(saldoPedido>0?'var(--rojo)':'var(--verde)')+'">'+money(saldoPedido)+'</td>'
+        +'<td colspan="2"></td>'
       +'</tr>'
       +'</tbody></table></td></tr>';
     return filaMain+filaDetalle;
@@ -1063,6 +1079,22 @@ function renderCobros(){
   +'<tr><td colspan="3" style="font-weight:800">'+t('txt_total')+lista.length+')</td><td class="tot">'+money(T)+'</td><td class="tot">'+money(P)+'</td><td class="tot">'+money(T-P)+'</td><td colspan="3"></td></tr>';
 }
 function toggleCobroDetalle(id){ const r=document.getElementById(id); if(r) r.style.display=r.style.display==='none'?'':'none'; }
+
+// Cobrar saldo proporcional de una prenda específica al momento de entrega
+function cobrarSaldoPrenda(key,prod,talle,monto){
+  const p=PEDIDOS.find(x=>x.key===key); if(!p) return;
+  const nombreItem=prod+(talle&&talle!=='—'?' T.'+talle:'');
+  if(!confirm('Registrar cobro de '+money(monto)+' por saldo de prenda:\n'+nombreItem+'?')) return;
+  // Registrar pago en el historial del pedido
+  const pagos=pagosDe(p).map(x=>({monto:x.monto,medio:x.medio,fecha:x.fecha,nota:x.nota||''}));
+  pagos.push({monto,medio:'',fecha:isoDia(new Date()),nota:'Saldo '+nombreItem});
+  // Marcar esta prenda como cobrada en items_pagados
+  const prevIp=(GESTION[key]||{}).items_pagados||{};
+  const items_pagados=Object.assign({},prevIp);
+  items_pagados[itemKeyOf(prod,talle)]=true;
+  guardarGestion(key,{pagos,pagado:'',items_pagados});
+  toast('✅ Saldo cobrado: '+money(monto)+' · '+nombreItem);
+}
 
 // ═══════════════════════════ STOCK RENDER ═══════════════════════════
 function renderStock(){
@@ -1121,11 +1153,11 @@ function renderEntregas(){
       if(q&&!norm(p.nombre+' '+((alumnoDe(p)||{}).nombre||'')+' '+it.producto+' '+it.talle).includes(q)) return;
       filas.push({p,it,al,ep,ent:e}); }); });
   if(!filas.length){ body.innerHTML='<tr><td colspan="5" class="empty">'+t('empty_sinprendas')+'</td></tr>'; return; }
-  body.innerHTML=filas.map(r=>{ const ent=entregaItemDe(r.p,r.it);
-    return '<tr data-key="'+esc(r.p.key)+'" data-prod="'+esc(r.it.producto).replace(/'/g,'')+'" data-talle="'+esc(r.it.talle).replace(/'/g,'')+'"><td><b>'+esc(r.al?r.al.nombre:r.p.nombre)+'</b><div style="font-size:0.68rem;color:var(--texto-suave)">'+esc(fmtDia(r.p.fecha))+'</div></td>'
+  body.innerHTML=filas.map(r=>{ const ent=entregaItemDe(r.p,r.it); const fechaEnt=fechaEntregaItemDe(r.p,r.it);
+    return '<tr data-key="'+esc(r.p.key)+'" data-prod="'+esc(r.it.producto).replace(/'/g,'')+'" data-talle="'+esc(r.it.talle).replace(/'/g,'')+'"><td><b>'+esc(r.al?r.al.nombre:r.p.nombre)+'</b><div style="font-size:0.68rem;color:var(--texto-suave)">Pedido: '+esc(fmtDia(r.p.fecha))+'</div></td>'
       +'<td>'+esc(r.it.producto)+' <b>'+esc(r.it.talle)+'</b> x'+r.it.cantidad+'</td>'
       +'<td><span class="badge '+PAGO_CLS[r.ep]+'">'+PAGO_LBL[r.ep]+'</span></td>'
-      +'<td>'+selectEntregaItem(r.p,r.it,ent)+'</td>'
+      +'<td>'+selectEntregaItem(r.p,r.it,ent)+'<div style="font-size:0.65rem;color:var(--texto-suave);margin-top:2px">'+(fechaEnt?'📅 '+esc(fmtDia(fechaEnt)):'')+'</div></td>'
       +'<td>'+(ent==='recibido'?'<button class="btn-sm wa" onclick="abrirWA(\''+esc(r.p.key)+'\',\'lista\')">'+t('btn_avisar')+'</button>':'')+'</td></tr>'; }).join('');
 }
 
@@ -1165,8 +1197,8 @@ function renderVincular(){
 
 // ═══════════════════════════ EXPORT ═══════════════════════════
 function exportarExcel(){
-  const detalle=[['Fecha','Nombre (formulario)','Atleta','Teléfono','Producto','Sección','Talle','Cantidad','Precio','Subtotal','Total pedido','Pagado','Saldo','Medio','Fecha pago','Entrega prenda','Notas']];
-  PEDIDOS.forEach(p=>{ const g=GESTION[p.key]||{}, al=alumnoDe(p), pg=pagadoDe(p); p.items.forEach(i=>detalle.push([fmtDia(p.fecha),p.nombre,al?al.nombre:'',al?al.tel:'',i.producto,seccionDe(i.producto),i.talle,i.cantidad,i.precio,i.subtotal,p.total,pg,p.total-pg,(pagosDe(p).slice(-1)[0]||{}).medio||'',(pagosDe(p).slice(-1)[0]||{}).fecha||'',entLbl(entregaItemDe(p,i)).replace(/^\S+\s/,''),g.notas||''])); });
+  const detalle=[['Fecha','Nombre (formulario)','Atleta','Teléfono','Producto','Sección','Talle','Cantidad','Precio','Subtotal','Total pedido','Pagado','Saldo','Medio','Fecha pago','Entrega prenda','Fecha entrega prenda','Notas']];
+  PEDIDOS.forEach(p=>{ const g=GESTION[p.key]||{}, al=alumnoDe(p), pg=pagadoDe(p); p.items.forEach(i=>detalle.push([fmtDia(p.fecha),p.nombre,al?al.nombre:'',al?al.tel:'',i.producto,seccionDe(i.producto),i.talle,i.cantidad,i.precio,i.subtotal,p.total,pg,p.total-pg,(pagosDe(p).slice(-1)[0]||{}).medio||'',(pagosDe(p).slice(-1)[0]||{}).fecha||'',entLbl(entregaItemDe(p,i)).replace(/^\S+\s/,''),fmtDia(fechaEntregaItemDe(p,i))||'',g.notas||''])); });
   const cobros=[['Atleta / Nombre','Fecha','Prendas','Total','Pagado','Saldo','Cant. pagos','Último medio','Última fecha','Estado']];
   PEDIDOS.forEach(p=>{ const al=alumnoDe(p), pg=pagadoDe(p), pagos=pagosDe(p), ult=pagos.slice(-1)[0]||{}; cobros.push([al?al.nombre:p.nombre,fmtDia(p.fecha),p.prendas,p.total,pg,p.total-pg,pagos.length,ult.medio||'',ult.fecha||'',pagoLbl(estadoPago(p)).replace(/^\S+\s/,'')]); });
   const pagosDet=[['Atleta / Nombre','Fecha pedido','N°','Monto','Medio','Fecha pago','Nota']];
