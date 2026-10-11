@@ -255,8 +255,6 @@ SECCIONES.forEach(function(sec) {
   }
   lista.appendChild(hdr);
   lista.appendChild(body);
-  if (gt) lista.appendChild(gt);
-  if (gd) lista.appendChild(gd);
   secProds.forEach(function(prod) {
     var wrap=document.createElement('div'); wrap.className='prod-row-wrap';
     var row=document.createElement('div'); row.className='prod-row'; row.id='row-'+prod.id;
@@ -294,6 +292,8 @@ SECCIONES.forEach(function(sec) {
     });
     wrap.appendChild(row); wrap.appendChild(det); body.appendChild(wrap);
   });
+  if (gt) body.appendChild(gt);
+  if (gd) body.appendChild(gd);
 });
 
 function goTo(from,to,dir) {
