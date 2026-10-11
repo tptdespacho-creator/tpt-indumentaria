@@ -243,20 +243,20 @@ SECCIONES.forEach(function(sec) {
   var body=document.createElement('div'); body.className='sec-body';
   hdr.addEventListener('click', function(e){ if(e.target.tagName==='A') return; var open=body.style.display!=='none'; body.style.display=open?'none':''; chev.style.transform=open?'rotate(-90deg)':''; });
   var g = GUIAS[sec];
-  var gd = null;
+  var gd = null, gt = null;
   if (g) {
-    var gt = document.createElement('span');
+    gt = document.createElement('span');
     gt.textContent = 'Ver guía de talles';
-    gt.style.cssText = 'margin-left:auto;margin-right:0.5rem;font-size:0.65rem;letter-spacing:0.08em;color:'+secColors[sec]+';font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;cursor:pointer;';
+    gt.style.cssText = 'display:block;margin:0.5rem 0 0.75rem;font-size:0.65rem;letter-spacing:0.08em;color:'+secColors[sec]+';font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;cursor:pointer;';
     gt.addEventListener('click', function(e){ e.stopPropagation(); var open = gd.style.display === 'block'; gd.style.display = open ? 'none' : 'block'; gt.textContent = open ? 'Ver guía de talles' : 'Ocultar guía de talles'; });
-    hdr.insertBefore(gt, chev);
     gd = document.createElement('div');
     gd.style.cssText = 'display:none;margin-bottom:0.75rem;overflow-x:auto;';
     gd.innerHTML = g;
   }
   lista.appendChild(hdr);
-  if (gd) lista.appendChild(gd);
   lista.appendChild(body);
+  if (gt) lista.appendChild(gt);
+  if (gd) lista.appendChild(gd);
   secProds.forEach(function(prod) {
     var wrap=document.createElement('div'); wrap.className='prod-row-wrap';
     var row=document.createElement('div'); row.className='prod-row'; row.id='row-'+prod.id;
