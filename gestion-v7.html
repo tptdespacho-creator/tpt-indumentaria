@@ -398,6 +398,7 @@ const PLANTILLAS={
 const CFG_KEYS={gas:'ind_gas_url',clave:'ind_clave',be:'ind_be_url',email:'ind_email',alias:'ind_alias',sena:'ind_sena_pct',tconf:'ind_t_conf',tsaldo:'ind_t_saldo',tlista:'ind_t_lista'};
 function cfg(k,def){ const v=localStorage.getItem(CFG_KEYS[k]); return (v==null||v==='')?def:v; }
 // Si la URL guardada es la deployment vieja (sin getPrendas), la reemplazamos por la nueva
+const DEF_CLAVE='n3w3r4.2026';
 const URL_VIEJA='https://script.google.com/macros/s/AKfycbyJO2EK';
 const URL_VIEJA2='https://script.google.com/macros/s/AKfycbyRbgPejwg';
 const URL_VIEJA3='https://script.google.com/macros/s/AKfycbwREGjI3V2';
@@ -408,7 +409,6 @@ const URL_VIEJA4='https://script.google.com/macros/s/AKfycbwdyOSDQSm';
   const c=localStorage.getItem(CFG_KEYS.clave)||'';
   if(c==='') { localStorage.setItem(CFG_KEYS.clave,DEF_CLAVE); }
 })();
-const DEF_CLAVE='n3w3r4.2026';
 let GAS_URL=cfg('gas',DEF_GAS), CLAVE=cfg('clave',DEF_CLAVE), BE_URL=cfg('be',DEF_BE);
 let TOKEN=localStorage.getItem('ind_token')||localStorage.getItem('tpt_token')||'';
 const ALIAS=()=>cfg('alias','triatlon.para.todos');
