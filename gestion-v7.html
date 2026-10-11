@@ -45,6 +45,7 @@ button{cursor:pointer;border:none;border-radius:8px;font-weight:700;font-family:
 button:disabled{opacity:0.5;cursor:not-allowed;}
 .pedido{background:var(--gris-card);border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--borde);border-left:4px solid var(--borde);}
 .pedido.pago-sena{border-left-color:var(--amarillo)}.pedido.pago-total{border-left-color:var(--verde)}.pedido.pago-nada{border-left-color:var(--rojo)}
+.pedido.anulado{border-left-color:#555;opacity:0.55;}.pedido.anulado .pname{text-decoration:line-through;color:var(--texto-suave);}
 .ptop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;}
 .pname{font-weight:800;font-size:0.98rem;}
 .pmeta{display:flex;gap:6px;flex-wrap:wrap;font-size:0.72rem;color:var(--texto-suave);margin-top:4px;align-items:center;}
@@ -168,7 +169,7 @@ textarea{width:100%;min-height:150px;resize:vertical;line-height:1.4;}
     <div class="fg"><label data-i18n="lbl_desde">Desde</label><input type="date" id="f-desde" onchange="renderPedidos()"></div>
     <div class="fg"><label data-i18n="lbl_hasta">Hasta</label><input type="date" id="f-hasta" onchange="renderPedidos()"></div>
     <div class="fg"><label data-i18n="lbl_pago">Pago</label><select id="f-pago" onchange="renderPedidos()"><option value="" data-i18n="opt_todos">Todos</option><option value="nada" data-i18n="opt_sinpago">Sin pago</option><option value="sena" data-i18n="opt_consena">Con seña</option><option value="total" data-i18n="opt_pagado">Pagado</option></select></div>
-    <div class="fg"><label data-i18n="lbl_entrega">Entrega</label><select id="f-ent" onchange="renderPedidos()"><option value="" data-i18n="opt_todas">Todas</option><option value="pendiente" data-i18n="opt_sinpedir">Sin pedir</option><option value="proveedor" data-i18n="opt_prov">Pedido al proveedor</option><option value="recibido" data-i18n="opt_recibido">Recibido</option><option value="entregado" data-i18n="opt_entregado">Entregado</option></select></div>
+    <div class="fg"><label data-i18n="lbl_entrega">Entrega</label><select id="f-ent" onchange="renderPedidos()"><option value="" data-i18n="opt_todas">Todas</option><option value="pendiente" data-i18n="opt_sinpedir">Sin pedir</option><option value="proveedor" data-i18n="opt_prov">Pedido al proveedor</option><option value="recibido" data-i18n="opt_recibido">Recibido</option><option value="entregado" data-i18n="opt_entregado">Entregado</option><option value="anulado" data-i18n="ent_anulado">Anulado</option></select></div>
     <div class="fg"><label data-i18n="lbl_atleta">Atleta</label><select id="f-vin" onchange="renderPedidos()"><option value="" data-i18n="opt_todos">Todos</option><option value="si" data-i18n="opt_vinc">Vinculado</option><option value="no" data-i18n="opt_sinvinc">Sin vincular</option></select></div>
     <button class="btn ghost" onclick="limpiarFiltros()" data-i18n="btn_limpiar">Limpiar</button>
     <div class="fg"><label data-i18n="lbl_vista">Vista</label><div style="display:flex;gap:4px">
@@ -237,7 +238,7 @@ textarea{width:100%;min-height:150px;resize:vertical;line-height:1.4;}
     <h3 data-i18n="entregas_title">🚚 Entregas — estado por prenda</h3>
     <p class="help" style="margin-bottom:10px" data-i18n="entregas_help">Cada prenda de cada atleta tiene su propio estado. Usá los botones de arriba para cambiar todas las prendas visibles de una vez.</p>
     <div class="filtros">
-      <div class="fg"><label data-i18n="lbl_estado">Estado</label><select id="ef-est" onchange="renderEntregas()"><option value="" data-i18n="opt_todos">Todos</option><option value="pendiente" data-i18n="opt_sinpedir">Sin pedir</option><option value="proveedor" data-i18n="opt_prov">Pedido al proveedor</option><option value="recibido" data-i18n="opt_recibido">Recibido (avisar)</option><option value="entregado" data-i18n="opt_entregado">Entregado</option></select></div>
+      <div class="fg"><label data-i18n="lbl_estado">Estado</label><select id="ef-est" onchange="renderEntregas()"><option value="" data-i18n="opt_todos">Todos</option><option value="pendiente" data-i18n="opt_sinpedir">Sin pedir</option><option value="proveedor" data-i18n="opt_prov">Pedido al proveedor</option><option value="recibido" data-i18n="opt_recibido">Recibido (avisar)</option><option value="entregado" data-i18n="opt_entregado">Entregado</option><option value="anulado" data-i18n="ent_anulado">Anulado</option></select></div>
       <div class="fg"><label data-i18n="lbl_buscar">Buscar</label><input id="ef-q" data-i18n-ph="ph_nombprenda" placeholder="Nombre o prenda..." oninput="renderEntregas()"></div>
       <div class="fg"><label data-i18n="lbl_cambiar">Cambiar todas las visibles a</label><div style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn-sm" onclick="entregaMasiva('proveedor')" data-i18n="btn_mprov">📤 Pedido</button>
@@ -450,7 +451,7 @@ es:{
  btn_guardarstock:'💾 Guardar stock',
  // dinámicos
  st_pedidos:'Pedidos',st_prendas:'Prendas',st_totalped:'Total pedidos',st_cobrado:'Cobrado',st_saldopend:'Saldo pendiente',st_sinpago:'Sin pago',st_entregados:'Entregados',st_sinvinc:'Sin vincular',
- ent_pendiente:'⏳ Sin pedir',ent_proveedor:'📤 Pedido al proveedor',ent_recibido:'📦 Recibido',ent_entregado:'✅ Entregado',
+ ent_pendiente:'⏳ Sin pedir',ent_proveedor:'📤 Pedido al proveedor',ent_recibido:'📦 Recibido',ent_entregado:'✅ Entregado',ent_anulado:'🚫 Anulado',
  pago_nada:'❌ Sin pago',pago_sena:'💛 Seña',pago_total:'✅ Pagado',
  eped_pendiente:'⏳ Sin pedir',eped_enproceso:'🔄 En proceso',eped_parcial:'◐ Parcial',eped_entregado:'✅ Entregado',
  empty_nofiltros:'Ningún pedido coincide con los filtros.',empty_sinpedidos:'Sin pedidos cargados. Revisá la configuración de la planilla o tocá 🔄 Actualizar.',empty_sinped:'Sin pedidos.',empty_sinprendas:'Sin prendas.',empty_criterio:'Sin pedidos para el criterio elegido.',empty_sesion:'Iniciá sesión en el backend (Config) para cargar la lista de atletas.',empty_todosvinc:'Todos los pedidos están vinculados. 🎉',empty_nopagos:'Todavía no hay pagos registrados.',empty_sincand:'Sin coincidencias.',empty_stock:'Stock sin cargar. Tocá <b>➕ Ingresar stock</b> para empezar (formato: Prenda | Talle | Cantidad).',
@@ -495,7 +496,7 @@ en:{
  stockmodal_help:'One line per item. Format: <code>Item | Size | Qty</code> — e.g.: <code>Trisuit Pave long sleeve | M | 5</code>. If the item already exists it is <b>added</b> to the current amount.',
  btn_guardarstock:'💾 Save stock',
  st_pedidos:'Orders',st_prendas:'Items',st_totalped:'Order total',st_cobrado:'Collected',st_saldopend:'Balance due',st_sinpago:'Unpaid',st_entregados:'Delivered',st_sinvinc:'Unlinked',
- ent_pendiente:'⏳ Not ordered',ent_proveedor:'📤 Ordered from supplier',ent_recibido:'📦 Received',ent_entregado:'✅ Delivered',
+ ent_pendiente:'⏳ Not ordered',ent_proveedor:'📤 Ordered from supplier',ent_recibido:'📦 Received',ent_entregado:'✅ Delivered',ent_anulado:'🚫 Cancelled',
  pago_nada:'❌ Unpaid',pago_sena:'💛 Deposit',pago_total:'✅ Paid',
  eped_pendiente:'⏳ Not ordered',eped_enproceso:'🔄 In progress',eped_parcial:'◐ Partial',eped_entregado:'✅ Delivered',
  empty_nofiltros:'No orders match the filters.',empty_sinpedidos:'No orders loaded. Check the spreadsheet settings or tap 🔄 Refresh.',empty_sinped:'No orders.',empty_sinprendas:'No items.',empty_criterio:'No orders for the chosen criteria.',empty_sesion:'Sign in to the backend (Config) to load the athlete list.',empty_todosvinc:'All orders are linked. 🎉',empty_nopagos:'No payments registered yet.',empty_sincand:'No matches.',empty_stock:'Stock not loaded. Tap <b>➕ Enter stock</b> to start (format: Item | Size | Qty).',
@@ -568,10 +569,10 @@ const SECCIONES_ORDEN=['Pave','HidraSport','Jacana','Otros'];
 const SEC_COLOR={Pave:'var(--naranja)',HidraSport:'var(--rojo)',Jacana:'#C9A227',Otros:'var(--texto-suave)'};
 const TALLES=['XS','S','M','L','XL','2XL','—'];
 let VISTA_PEDIDOS='pedido';
-const ENTREGA_LBL={pendiente:'⏳ Sin pedir',proveedor:'📤 Pedido al proveedor',recibido:'📦 Recibido',entregado:'✅ Entregado'};
-const ENTREGA_CLS={pendiente:'b-mut',proveedor:'b-info',recibido:'b-warn',entregado:'b-ok'};
+const ENTREGA_LBL={pendiente:'⏳ Sin pedir',proveedor:'📤 Pedido al proveedor',recibido:'📦 Recibido',entregado:'✅ Entregado',anulado:'🚫 Anulado'};
+const ENTREGA_CLS={pendiente:'b-mut',proveedor:'b-info',recibido:'b-warn',entregado:'b-ok',anulado:'b-err'};
 // Etiquetas de estado/pago traducidas en tiempo de render (dependen del idioma)
-const ENTREGA_KEY={pendiente:'ent_pendiente',proveedor:'ent_proveedor',recibido:'ent_recibido',entregado:'ent_entregado'};
+const ENTREGA_KEY={pendiente:'ent_pendiente',proveedor:'ent_proveedor',recibido:'ent_recibido',entregado:'ent_entregado',anulado:'ent_anulado'};
 const PAGO_KEY={nada:'pago_nada',sena:'pago_sena',total:'pago_total'};
 const ENT_PED_KEY={pendiente:'eped_pendiente',enproceso:'eped_enproceso',parcial:'eped_parcial',entregado:'eped_entregado'};
 const entLbl=e=>t(ENTREGA_KEY[e]||e);
@@ -745,18 +746,21 @@ function setEntregaItem(key,it,est){ const g=GESTION[key]||{}; const items=Objec
 function pedidoEntregadoCompleto(p){ return p.items.every(it=>entregaItemDe(p,it)==='entregado'); }
 // Estado "resumido" del pedido según sus prendas (para badges y filtros)
 function estadoEntregaPedido(p){
+  const g=GESTION[p.key]||{};
+  if(g.entrega==='anulado') return 'anulado';
   const es=p.items.map(it=>entregaItemDe(p,it));
+  if(es.every(e=>e==='anulado')) return 'anulado';
   if(es.every(e=>e==='entregado')) return 'entregado';
   if(es.every(e=>e==='pendiente')) return 'pendiente';
   if(es.some(e=>e==='entregado')) return 'parcial';
   if(es.some(e=>e!=='pendiente')) return 'en-proceso';
   return 'pendiente';
 }
-const ENT_PED_LBL={pendiente:'⏳ Sin pedir',enproceso:'🔄 En proceso',parcial:'◐ Parcial',entregado:'✅ Entregado'};
+const ENT_PED_LBL={pendiente:'⏳ Sin pedir',enproceso:'🔄 En proceso',parcial:'◐ Parcial',entregado:'✅ Entregado',anulado:'🚫 Anulado'};
 function badgeEntregaPedido(p){
   const e=estadoEntregaPedido(p);
-  const lbl=e==='en-proceso'?t('eped_enproceso'):(t(ENT_PED_KEY[e])||e);
-  const cls=e==='entregado'?'b-ok':e==='parcial'?'b-vio':e==='en-proceso'?'b-info':'b-mut';
+  const lbl=e==='en-proceso'?t('eped_enproceso'):e==='anulado'?'🚫 Anulado':(t(ENT_PED_KEY[e])||e);
+  const cls=e==='entregado'?'b-ok':e==='parcial'?'b-vio':e==='en-proceso'?'b-info':e==='anulado'?'b-err':'b-mut';
   return '<span class="badge '+cls+'">'+lbl+'</span>';
 }
 function setPago(key,monto,medio,fecha){ const p=PEDIDOS.find(x=>x.key===key); if(!p) return; monto=Math.max(0,Number(monto)||0); if(monto<=0){ toast(t('t_montoinv'),'err'); return; } const pagos=pagosDe(p).map(x=>({monto:x.monto,medio:x.medio,fecha:x.fecha,nota:x.nota==='(migrado)'?'':x.nota})); pagos.push({monto,medio:medio||'',fecha:fecha||isoDia(new Date())}); guardarGestion(key,{pagos,pagado:'',medio:medio||'',fecha_pago:fecha||isoDia(new Date())}); }
@@ -913,7 +917,9 @@ function pedidosFiltrados(){
     if(q){ const al=alumnoDe(p); const txt=norm(p.nombre+' '+(al?al.nombre:'')+' '+p.items.map(i=>i.producto+' '+i.talle).join(' ')); if(!txt.includes(q)) return false; }
     if(!enRango(p,'f-desde','f-hasta')) return false;
     if(pago&&estadoPago(p)!==pago) return false;
-    if(ent){ const e=estadoEntregaPedido(p); if(ent==='pendiente'&&e!=='pendiente') return false; if(ent==='proveedor'&&e!=='en-proceso'&&e!=='parcial') return false; if(ent==='recibido'&&e!=='en-proceso'&&e!=='parcial') return false; if(ent==='entregado'&&e!=='entregado') return false; }
+    if(ent){ const e=estadoEntregaPedido(p); if(ent==='anulado'&&e!=='anulado') return false; if(ent!=='anulado'&&e==='anulado') return false; if(ent==='pendiente'&&e!=='pendiente') return false; if(ent==='proveedor'&&e!=='en-proceso'&&e!=='parcial') return false; if(ent==='recibido'&&e!=='en-proceso'&&e!=='parcial') return false; if(ent==='entregado'&&e!=='entregado') return false; }
+    // Ocultar anulados cuando no se filtra por ellos explícitamente
+    if(!ent && estadoEntregaPedido(p)==='anulado') return false;
     if(vin==='si'&&!alumnoDe(p)) return false; if(vin==='no'&&alumnoDe(p)) return false;
     return true;
   });
@@ -985,7 +991,7 @@ function renderPedidos(){
   el.innerHTML=lista.map(p=>{
     const g=GESTION[p.key]||{}, al=alumnoDe(p), ep=estadoPago(p), pg=pagadoDe(p), ent=estadoEntregaPedido(p);
     const vinc=al?'<span class="badge '+(al.guardado?'b-ok':'b-warn')+'" title="'+(al.guardado?t('title_vinc'):t('title_autovinc'))+'">🏊 '+esc(al.nombre)+(al.guardado?'':t('badge_auto'))+'</span>':'<span class="badge b-err">'+t('badge_sinvinc')+'</span>';
-    return '<div class="pedido pago-'+ep+'">'
+    return '<div class="pedido pago-'+ep+(ent==='anulado'?' anulado':'')+'">'
       +'<div class="ptop"><div><div class="pname">'+esc(p.nombre)+(p.telFormulario?'<span style="font-size:0.68rem;font-weight:400;color:var(--texto-suave);margin-left:6px">📱 '+esc(p.telFormulario)+'</span>':'')+(p.emailFormulario?'<span style="font-size:0.65rem;font-weight:400;color:var(--texto-suave);margin-left:4px">✉ '+esc(p.emailFormulario)+'</span>':'')+'</div><div class="pmeta"><span>📅 '+esc(fmtDia(p.fecha)||p.fechaTxt)+'</span>'+vinc+'<span class="badge '+PAGO_CLS[ep]+'">'+pagoLbl(ep)+'</span>'+badgeEntregaPedido(p)+(g.notas?'<span class="badge b-vio" title="'+esc(g.notas)+'">'+t('txt_nota')+'</span>':'')+'</div></div>'
       +'<div style="text-align:right"><div style="font-weight:800;font-size:1.05rem">'+money(p.total)+'</div><div style="font-size:0.7rem;color:var(--texto-suave)">'+p.prendas+(p.prendas>1?t('txt_prendas2'):t('txt_prenda'))+(pg>0&&pg<p.total?t('txt_saldopref')+money(p.total-pg):'')+'</div></div></div>'
       +'<div class="items">'+p.items.map(it=>{ const ei=entregaItemDe(p,it); const fechaEnt=fechaEntregaItemDe(p,it);
