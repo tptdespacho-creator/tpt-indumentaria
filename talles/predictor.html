@@ -20,7 +20,7 @@
 </head>
 <body>
 <h1>Predictor de talles</h1>
-<p class="sub">Ingresá tus medidas en centímetros. Usamos las tablas de Jersey y Calza de Pavé.</p>
+<p class="sub">Ingresá tus medidas en centímetros. Usamos la guía de talles del Trisuit de Pavé.</p>
 
 <label>Pecho (cm)<input id="pecho" type="number" step="0.5" inputmode="decimal"></label>
 <label>Cintura (cm)<input id="cintura" type="number" step="0.5" inputmode="decimal"></label>
@@ -29,21 +29,23 @@
 <button id="calcular">Calcular talle</button>
 <div id="salida"></div>
 
-<p class="aviso">Regla: se elige el talle más chico cuya medida es igual o mayor a la tuya, para que la prenda no quede ajustada de más. Si el jersey y la calza dan talles distintos, se recomienda el mayor.</p>
+<p class="aviso">Regla: se elige el talle más chico cuyo rango cubre tus medidas (pecho, cintura y cadera).</p>
 
 <script>
 var TALLES = ['XS','S','M','L','XL','XXL'];
-var TABLAS = {
-  jersey: { pecho: [86,90,94,98,104,110], cintura: [72,76,80,84,90,96] },
-  calza:  { cintura: [66,70,74,78,84,90], cadera: [88,92,96,100,106,112] }
+// Trisuit Pavé: rangos en cm. Se usa el límite superior de cada rango.
+var TRISUIT = {
+  pecho:   [80, 85, 90, 95, 100, 105],
+  cintura: [65, 70, 75, 80, 85, 90],
+  cadera:  [89, 94, 99, 104, 109, 114]
 };
 
-function talleMinimo(medidas, tabla) {
+function talleMinimo(medidas) {
   for (var i = 0; i < TALLES.length; i++) {
     var ok = true;
     for (var k in medidas) {
       if (medidas[k] === null) continue;
-      if (tabla[k][i] < medidas[k]) { ok = false; break; }
+      if (TRISUIT[k][i] < medidas[k]) { ok = false; break; }
     }
     if (ok) return i;
   }
@@ -62,17 +64,12 @@ document.getElementById('calcular').addEventListener('click', function() {
     salida.innerHTML = '<p class="error">Completá pecho, cintura y cadera.</p>';
     return;
   }
-  var iJersey = talleMinimo({ pecho: pecho, cintura: cintura }, TABLAS.jersey);
-  var iCalza  = talleMinimo({ cintura: cintura, cadera: cadera }, TABLAS.calza);
-
-  if (iJersey < 0 || iCalza < 0) {
+  var i = talleMinimo({ pecho: pecho, cintura: cintura, cadera: cadera });
+  if (i < 0) {
     salida.innerHTML = '<div class="resultado"><div class="talle">Consultar</div><div class="detalle">Tus medidas superan la tabla más grande (XXL). Escribinos para revisar tu caso.</div></div>';
     return;
   }
-  var final = Math.max(iJersey, iCalza);
-  var detalle = 'Jersey: ' + TALLES[iJersey] + ' · Calza: ' + TALLES[iCalza];
-  if (iJersey !== iCalza) detalle += ' (se recomienda el mayor)';
-  salida.innerHTML = '<div class="resultado"><div>Tu talle de Trisuit</div><div class="talle">' + TALLES[final] + '</div><div class="detalle">Calculado con jersey y calza. ' + detalle + '</div></div>';
+  salida.innerHTML = '<div class="resultado"><div>Tu talle de Trisuit</div><div class="talle">' + TALLES[i] + '</div><div class="detalle">Calculado con la guía de talles de Trisuit de Pavé.</div></div>';
 });
 </script>
 </body>
