@@ -998,7 +998,7 @@ function renderPedidos(){
       +'<div class="ptop"><div><div class="pname">'+esc(p.nombre)+(p.telFormulario?'<span style="font-size:0.68rem;font-weight:400;color:var(--texto-suave);margin-left:6px">📱 '+esc(p.telFormulario)+'</span>':'')+(p.emailFormulario?'<span style="font-size:0.65rem;font-weight:400;color:var(--texto-suave);margin-left:4px">✉ '+esc(p.emailFormulario)+'</span>':'')+'</div><div class="pmeta"><span>📅 '+esc(fmtDia(p.fecha)||p.fechaTxt)+'</span>'+vinc+'<span class="badge '+PAGO_CLS[ep]+'">'+pagoLbl(ep)+'</span>'+badgeEntregaPedido(p)+(g.notas?'<span class="badge b-vio" title="'+esc(g.notas)+'">'+t('txt_nota')+'</span>':'')+'</div></div>'
       +'<div style="text-align:right"><div style="font-weight:800;font-size:1.05rem">'+money(p.total)+'</div><div style="font-size:0.7rem;color:var(--texto-suave)">'+p.prendas+(p.prendas>1?t('txt_prendas2'):t('txt_prenda'))+(pg>0&&pg<p.total?t('txt_saldopref')+money(p.total-pg):'')+'</div></div></div>'
       +'<div class="items">'+p.items.map(it=>{ const ei=entregaItemDe(p,it); const fechaEnt=fechaEntregaItemDe(p,it);
-        return '<div class="item"'+(itemCoincide(p,it)?'':' style="opacity:0.35"')+'><span>'+esc(it.producto)+' <span class="t">'+(it.talle!=='—'?'· '+t('txt_talle')+'<b>'+esc(it.talle)+'</b> ':'')+'· x'+it.cantidad+'</span>'+(fechaEnt?'<span style="font-size:0.63rem;color:var(--texto-suave);margin-left:4px">📅 '+esc(fmtDia(fechaEnt))+'</span>':'')+'</span>'
+        return '<div class="item"'+(itemCoincide(p,it)?'':' style="opacity:0.35"')+'><span>'+esc(it.producto)+' <span class="t">'+(it.talle!=='—'?'· '+t('txt_talle')+'<b>'+esc(it.talle)+'</b> ':'')+'· x'+it.cantidad+'</span>'+(fechaEnt?'<span style="font-size:0.63rem;color:var(--texto-suave);margin-left:4px">📅 '+esc(fmtDia(parseFecha(fechaEnt)))+'</span>':'')+'</span>'
         +'<span class="item-ent"><span>'+money(it.subtotal)+'</span>'+selectEntregaItem(p,it,ei)+'</span></div>'; }).join('')+'</div>'
       +'<div class="pago-row"><span class="lbl">'+t('lbl_pagos')+'</span>'
       +'<button class="btn-sm" onclick="abrirPagos(\''+esc(p.key)+'\')">💵 '+t('lbl_pagos')+' ('+pagosDe(p).length+') · '+t('txt_pagado')+money(pg)+' / '+money(p.total)+'</button>'
@@ -1072,7 +1072,7 @@ function renderCobros(){
           +'<td style="padding:4px 8px;text-align:center">'+it.cantidad+'</td>'
           +'<td style="padding:4px 10px;text-align:right;font-weight:700">'+money(it.subtotal)+'</td>'
           +'<td style="padding:4px 10px;text-align:right;color:'+(saldoRestante>0?'var(--rojo)':'var(--verde)')+';font-weight:700">'+(saldoRestante>0?money(saldoRestante):'✅ Cobrado')+'</td>'
-          +'<td style="padding:4px 10px;text-align:center"><span class="badge '+(ei==='entregado'?'b-ok':ei==='recibido'?'b-warn':'b-mut')+'">'+entLbl(ei)+'</span>'+(fechaEnt?'<div style="font-size:0.65rem;color:var(--texto-suave)">'+esc(fmtDia(fechaEnt))+'</div>':'')+'</td>'
+          +'<td style="padding:4px 10px;text-align:center"><span class="badge '+(ei==='entregado'?'b-ok':ei==='recibido'?'b-warn':'b-mut')+'">'+entLbl(ei)+'</span>'+(fechaEnt?'<div style="font-size:0.65rem;color:var(--texto-suave)">'+esc(fmtDia(parseFecha(fechaEnt)))+'</div>':'')+'</td>'
           +'<td style="padding:4px 8px;text-align:center">'
             +(saldoRestante>0&&saldoPedido>0
               ?'<button class="btn-sm ok" style="font-size:0.65rem;padding:2px 6px" onclick="cobrarSaldoPrenda(\''+esc(p.key)+'\',\''+esc(it.producto)+'\',\''+esc(it.talle)+'\','+saldoRestante+')">💵 '+money(saldoRestante)+'</button>'
@@ -1173,7 +1173,7 @@ function renderEntregas(){
   body.innerHTML=filas.map(r=>{ const ent=r.ent; const fechaEnt=fechaEntregaItemDe(r.p,r.it);
     const entCeld=ent==='anulado'
       ?'<span class="badge b-err">🚫 Anulado</span>'
-      :selectEntregaItem(r.p,r.it,ent)+'<div style="font-size:0.65rem;color:var(--texto-suave);margin-top:2px">'+(fechaEnt?'📅 '+esc(fmtDia(fechaEnt)):'')+'</div>';
+      :selectEntregaItem(r.p,r.it,ent)+'<div style="font-size:0.65rem;color:var(--texto-suave);margin-top:2px">'+(fechaEnt?'📅 '+esc(fmtDia(parseFecha(fechaEnt))):'')+'</div>';
     return '<tr data-key="'+esc(r.p.key)+'" data-prod="'+esc(r.it.producto).replace(/'/g,'')+'" data-talle="'+esc(r.it.talle).replace(/'/g,'')+(ent==='anulado'?' style="opacity:0.55"':'')+'">'
       +'<td><b>'+esc(r.al?r.al.nombre:r.p.nombre)+'</b><div style="font-size:0.68rem;color:var(--texto-suave)">Pedido: '+esc(fmtDia(r.p.fecha))+'</div></td>'
       +'<td>'+(ent==='anulado'?'<s>':'')+esc(r.it.producto)+' <b>'+esc(r.it.talle)+'</b> x'+r.it.cantidad+(ent==='anulado'?'</s>':'')+'</td>'
@@ -1219,7 +1219,7 @@ function renderVincular(){
 // ═══════════════════════════ EXPORT ═══════════════════════════
 function exportarExcel(){
   const detalle=[['Fecha','Nombre (formulario)','Atleta','Teléfono','Producto','Sección','Talle','Cantidad','Precio','Subtotal','Total pedido','Pagado','Saldo','Medio','Fecha pago','Entrega prenda','Fecha entrega prenda','Notas']];
-  PEDIDOS.forEach(p=>{ const g=GESTION[p.key]||{}, al=alumnoDe(p), pg=pagadoDe(p); p.items.forEach(i=>detalle.push([fmtDia(p.fecha),p.nombre,al?al.nombre:'',al?al.tel:'',i.producto,seccionDe(i.producto),i.talle,i.cantidad,i.precio,i.subtotal,p.total,pg,p.total-pg,(pagosDe(p).slice(-1)[0]||{}).medio||'',(pagosDe(p).slice(-1)[0]||{}).fecha||'',entLbl(entregaItemDe(p,i)).replace(/^\S+\s/,''),fmtDia(fechaEntregaItemDe(p,i))||'',g.notas||''])); });
+  PEDIDOS.forEach(p=>{ const g=GESTION[p.key]||{}, al=alumnoDe(p), pg=pagadoDe(p); p.items.forEach(i=>detalle.push([fmtDia(p.fecha),p.nombre,al?al.nombre:'',al?al.tel:'',i.producto,seccionDe(i.producto),i.talle,i.cantidad,i.precio,i.subtotal,p.total,pg,p.total-pg,(pagosDe(p).slice(-1)[0]||{}).medio||'',(pagosDe(p).slice(-1)[0]||{}).fecha||'',entLbl(entregaItemDe(p,i)).replace(/^\S+\s/,''),fmtDia(parseFecha(fechaEntregaItemDe(p,i)))||'',g.notas||''])); });
   const cobros=[['Atleta / Nombre','Fecha','Prendas','Total','Pagado','Saldo','Cant. pagos','Último medio','Última fecha','Estado']];
   PEDIDOS.forEach(p=>{ const al=alumnoDe(p), pg=pagadoDe(p), pagos=pagosDe(p), ult=pagos.slice(-1)[0]||{}; cobros.push([al?al.nombre:p.nombre,fmtDia(p.fecha),p.prendas,p.total,pg,p.total-pg,pagos.length,ult.medio||'',ult.fecha||'',pagoLbl(estadoPago(p)).replace(/^\S+\s/,'')]); });
   const pagosDet=[['Atleta / Nombre','Fecha pedido','N°','Monto','Medio','Fecha pago','Nota']];
