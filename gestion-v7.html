@@ -134,7 +134,7 @@ textarea{width:100%;min-height:150px;resize:vertical;line-height:1.4;}
 
 <div id="loading"></div>
 <header>
-  <div><h1 data-i18n="app_title">👕 TPT — Gestión de Indumentaria</h1><p data-i18n="app_sub">Pedidos del formulario · stock · cobros · entregas por prenda · resumen para proveedor · v6</p></div>
+  <div onclick="activarConfigSecret()" style="cursor:default;user-select:none"><h1 data-i18n="app_title">👕 TPT — Gestión de Indumentaria</h1><p data-i18n="app_sub">Pedidos del formulario · stock · cobros · entregas por prenda · resumen para proveedor · v6</p></div>
   <div class="hdr-right">
     <span class="pill" id="st-sheet">📄 Planilla: —</span>
     <span class="pill" id="st-al">🏊 Atletas: —</span>
@@ -145,7 +145,6 @@ textarea{width:100%;min-height:150px;resize:vertical;line-height:1.4;}
       <option value="ko">🇰🇷 한국어</option>
     </select>
     <button class="btn sec" onclick="cargarTodo()">🔄 Actualizar</button>
-    <button class="btn ghost" onclick="sp('config',null)">⚙️</button>
   </div>
 </header>
 <div class="tabs" id="tabs">
@@ -156,7 +155,7 @@ textarea{width:100%;min-height:150px;resize:vertical;line-height:1.4;}
   <div class="tab" data-page="entregas" onclick="sp('entregas',this)" data-i18n="tab_entregas">🚚 Entregas</div>
   <div class="tab" data-page="resumen" onclick="sp('resumen',this)" data-i18n="tab_resumen">📊 Resumen proveedor</div>
   <div class="tab" data-page="vincular" onclick="sp('vincular',this)" data-i18n="tab_vincular">🔗 Vincular atletas</div>
-  <div class="tab" data-page="config" onclick="sp('config',this)" data-i18n="tab_config">⚙️ Config</div>
+  <div class="tab" id="tab-config" data-page="config" onclick="sp('config',this)" data-i18n="tab_config" style="display:none">⚙️ Config</div>
 </div>
 
 <div class="container">
@@ -1224,6 +1223,22 @@ async function guardarProveedor(){
   try{ loading(true); const g=await guardarGestion('__proveedor__',data); PROVEEDOR=g||data; toast(t('t_provok')); }
   catch(e){ toast(t('t_proverr')+e.message,'err'); }
   finally{ loading(false); }
+}
+
+// ═══════════════════════════ CONFIG SECRETA ═══════════════════════════
+let _cfgClicks=0, _cfgTimer=null;
+function activarConfigSecret(){
+  _cfgClicks++;
+  clearTimeout(_cfgTimer);
+  _cfgTimer=setTimeout(()=>{ _cfgClicks=0; },2000);
+  if(_cfgClicks>=5){
+    _cfgClicks=0;
+    const tab=$('tab-config');
+    const visible=tab.style.display!=='none';
+    tab.style.display=visible?'none':'';
+    if(!visible){ sp('config',null); toast('⚙️ Config activada'); }
+    else{ sp('pedidos',null); toast('⚙️ Config ocultada'); }
+  }
 }
 
 // ═══════════════════════════ LOGIN ═══════════════════════════
