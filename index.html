@@ -260,7 +260,7 @@ SECCIONES.forEach(function(sec) {
   hdr.innerHTML = sec+'<span style="font-size:0.65rem;letter-spacing:0.12em;color:var(--muted);font-family:Barlow,sans-serif;font-weight:600;">'+secProds.length+' productos</span>';
   var chev=document.createElement('span'); chev.textContent='\u25BE'; chev.style.cssText='font-size:0.9rem;margin-left:0.4rem;transition:transform 0.2s;'; hdr.appendChild(chev);
   if (sec === 'Pave') {
-    hdr.innerHTML += '<a href="https://pave.com.ar/talles/" target="_blank" rel="noopener" style="margin-left:auto;font-size:0.65rem;letter-spacing:0.08em;color:var(--orange);font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;">Ver guía de talles</a>';
+    hdr.innerHTML += '<a href="#talle-card" data-guia="Pavé" style="margin-left:auto;font-size:0.65rem;letter-spacing:0.08em;color:var(--orange);font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;">Ver guía de talles</a>';
   }
   if (sec === 'Jacana') {
     hdr.innerHTML += '<a href="https://www.jacana.ar/tienda/" target="_blank" rel="noopener" style="margin-left:auto;font-size:0.65rem;letter-spacing:0.08em;color:#C9A227;font-family:Barlow,sans-serif;font-weight:600;text-decoration:underline;">Ver guía de talles</a>';
@@ -476,6 +476,25 @@ function toggleTalleImg(el) {
     var open = b.style.display !== 'none';
     b.style.display = open ? 'none' : '';
     document.getElementById('tp-chev').style.transform = open ? 'rotate(-90deg)' : '';
+  });
+})();
+
+(function(){
+  document.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('a[data-guia]') : null;
+    if (!a) return;
+    e.preventDefault();
+    var body = document.getElementById('tp-body');
+    if (body.style.display === 'none') { body.style.display = ''; document.getElementById('tp-chev').style.transform = ''; }
+    var nombre = a.getAttribute('data-guia');
+    var spans = document.querySelectorAll('#tp-body .talle-img-toggle');
+    for (var i = 0; i < spans.length; i++) {
+      if (spans[i].textContent === 'Ver guía de talles ' + nombre) {
+        if (spans[i].nextElementSibling.style.display !== 'block') spans[i].click();
+        spans[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        break;
+      }
+    }
   });
 })();
 </script>
