@@ -748,7 +748,10 @@ function pedidoEntregadoCompleto(p){ return p.items.every(it=>entregaItemDe(p,it
 function estadoEntregaPedido(p){
   const g=GESTION[p.key]||{};
   if(g.entrega==='anulado') return 'anulado';
-  const es=p.items.map(it=>entregaItemDe(p,it));
+  const es=p.items.map(it=>{
+    const gi=g.items&&g.items[itemKeyOf(it.producto,it.talle)];
+    return (gi&&gi.entrega)||g.entrega||'pendiente';
+  });
   if(es.every(e=>e==='anulado')) return 'anulado';
   if(es.every(e=>e==='entregado')) return 'entregado';
   if(es.every(e=>e==='pendiente')) return 'pendiente';
