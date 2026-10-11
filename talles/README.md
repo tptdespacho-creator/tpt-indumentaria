@@ -5,8 +5,8 @@ Guías de talles de cada proveedor de indumentaria TPT.
 | Proveedor | Carpeta | Estado |
 |---|---|---|
 | HidraSport | [hidrasport/](hidrasport/) | Trisuit (`trisuit.md`) y malla entera guardavidas (`malla-entera-guardavidas.md`) y zunga de hombre (`zunga-hombre.md`) |
-| Pavé | [pave/](pave/) | Solo link: https://pave.com.ar/talles/ |
+| Pavé | [pave/](pave/) | Tabla de trisuit con medidas (`trisuit-medidas.md`), jersey (`jersey.md`), calza (`calza.md`), chaleco (`chaleco.md`) y rangos de trisuit (`trisuit.md`, fuente Australia) |
 | Jacana | [jacana/](jacana/) | Tablas de mujer, hombre/unisex e infantil (`tablas.md`) |
 | Cozy | [cozy/](cozy/) | Trisuit / Enterito Half (`trisuit.md`, XS a XXL, medidas en plano) |
 
-Las tablas de Pavé no se pudieron copiar desde su sitio. Cuando las tengamos, se agregan en su carpeta.
+La guía oficial de Pavé está en https://pave.com.ar/talles/ y no se pudo leer desde acá.
