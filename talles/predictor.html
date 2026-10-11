@@ -23,8 +23,8 @@
 <p class="sub">Ingresá tus medidas en centímetros. Te damos el talle de Trisuit, Jersey y Calza de Pavé.</p>
 
 <label>Pecho (cm)<input id="pecho" type="number" step="0.5" inputmode="decimal"></label>
-<label>Cintura (cm)<input id="cintura" type="number" step="0.5" inputmode="decimal"></label>
-<label>Cadera (cm)<input id="cadera" type="number" step="0.5" inputmode="decimal"></label>
+<label>Cintura (cm) <small>opcional</small><input id="cintura" type="number" step="0.5" inputmode="decimal"></label>
+<label>Cadera (cm) <small>opcional</small><input id="cadera" type="number" step="0.5" inputmode="decimal"></label>
 
 <button id="calcular">Calcular talle</button>
 <div id="salida"></div>
@@ -33,13 +33,12 @@
 
 <script>
 var TALLES = ['XS','S','M','L','XL','XXL'];
-// Guías en cm. Trisuit usa el límite superior de cada rango.
 var TABLAS = {
   trisuit: { pecho: [80,85,90,95,100,105], cintura: [65,70,75,80,85,90], cadera: [89,94,99,104,109,114] },
   jersey:  { pecho: [86,90,94,98,104,110], cintura: [72,76,80,84,90,96] },
   calza:   { cintura: [66,70,74,78,84,90], cadera: [88,92,96,100,106,112] }
 };
-var NOMBRES = { trisuit: 'Trisuit', jersey: 'Jersey', calza: 'Calza' };
+var NOMBRES = { trisuit: 'Trisuit', jersey: 'Jersey', calza: 'Calza', top: 'Top femenino (solo pecho)' };
 
 function talleMinimo(medidas, tabla) {
   for (var i = 0; i < TALLES.length; i++) {
@@ -58,22 +57,22 @@ function leer(id) {
 }
 
 document.getElementById('calcular').addEventListener('click', function() {
-  var pecho = leer('pecho'), cintura = leer('cintura'), cadera = leer('cadera');
+  var p = leer('pecho'), c = leer('cintura'), h = leer('cadera');
   var salida = document.getElementById('salida');
-  if (pecho === null || cintura === null || cadera === null || isNaN(pecho) || isNaN(cintura) || isNaN(cadera)) {
-    salida.innerHTML = '<p class="error">Completá pecho, cintura y cadera.</p>';
+  var resultados = [];
+  if (p !== null && c !== null && h !== null) resultados.push(['trisuit', { pecho: p, cintura: c, cadera: h }, TABLAS.trisuit]);
+  if (p !== null && c !== null) resultados.push(['jersey', { pecho: p, cintura: c }, TABLAS.jersey]);
+  if (c !== null && h !== null) resultados.push(['calza', { cintura: c, cadera: h }, TABLAS.calza]);
+  if (p !== null && c === null && h === null) resultados.push(['top', { pecho: p }, { pecho: TABLAS.jersey.pecho }]);
+  if (!resultados.length) {
+    salida.innerHTML = '<p class="error">Ingresá al menos una combinación: pecho solo (top femenino), pecho + cintura (jersey), cintura + cadera (calza), o las tres (Trisuit).</p>';
     return;
   }
-  var medidas = {
-    trisuit: { pecho: pecho, cintura: cintura, cadera: cadera },
-    jersey:  { pecho: pecho, cintura: cintura },
-    calza:   { cintura: cintura, cadera: cadera }
-  };
   var html = '';
-  ['trisuit','jersey','calza'].forEach(function(prenda) {
-    var i = talleMinimo(medidas[prenda], TABLAS[prenda]);
+  resultados.forEach(function(r) {
+    var i = talleMinimo(r[1], r[2]);
     var valor = i < 0 ? 'Consultar' : TALLES[i];
-    html += '<div class="resultado"><div>' + NOMBRES[prenda] + '</div><div class="talle">' + valor + '</div>' +
+    html += '<div class="resultado"><div>' + NOMBRES[r[0]] + '</div><div class="talle">' + valor + '</div>' +
       (i < 0 ? '<div class="detalle">Tus medidas superan la tabla más grande (XXL).</div>' : '') + '</div>';
   });
   salida.innerHTML = html;

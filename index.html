@@ -120,8 +120,8 @@ body::before { content:''; position:fixed; top:0; left:0; right:0; height:40vh; 
       <div id="tp-body">
       <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.75rem;line-height:1.5;">Ingresá tus medidas en centímetros. Los talles son orientativos.</p>
       <div class="field"><label>Pecho (cm)</label><input type="number" id="tp-pecho" step="0.5" inputmode="decimal"></div>
-      <div class="field"><label>Cintura (cm)</label><input type="number" id="tp-cintura" step="0.5" inputmode="decimal"></div>
-      <div class="field"><label>Cadera (cm)</label><input type="number" id="tp-cadera" step="0.5" inputmode="decimal"></div>
+      <div class="field"><label>Cintura (cm) <small>opcional</small></label><input type="number" id="tp-cintura" step="0.5" inputmode="decimal"></div>
+      <div class="field"><label>Cadera (cm) <small>opcional</small></label><input type="number" id="tp-cadera" step="0.5" inputmode="decimal"></div>
       <button type="button" class="btn-primary" id="tp-calcular">CALCULAR MI TALLE</button>
       <div id="tp-salida" style="margin-top:1rem;"></div>
       <div style="margin-top:1.25rem;">
@@ -424,7 +424,7 @@ function toggleTalleImg(el) {
     jersey:  { pecho:[86,90,94,98,104,110], cintura:[72,76,80,84,90,96] },
     calza:   { cintura:[66,70,74,78,84,90], cadera:[88,92,96,100,106,112] }
   };
-  var NM = { trisuit:'Trisuit', jersey:'Jersey', calza:'Calza' };
+  var NM = { trisuit:'Trisuit', jersey:'Jersey', calza:'Calza', top:'Top femenino (solo pecho)' };
   function minimo(m, t) {
     for (var i = 0; i < 6; i++) {
       var ok = true;
@@ -440,20 +440,20 @@ function toggleTalleImg(el) {
   document.getElementById('tp-calcular').addEventListener('click', function() {
     var p = lee('tp-pecho'), c = lee('tp-cintura'), h = lee('tp-cadera');
     var out = document.getElementById('tp-salida');
-    if (p === null || c === null || h === null || isNaN(p) || isNaN(c) || isNaN(h)) {
-      out.innerHTML = '<p style="color:var(--red);font-size:0.85rem;">Completá pecho, cintura y cadera.</p>';
+    var res = [];
+    if (p !== null && c !== null && h !== null) res.push(['trisuit', { pecho:p, cintura:c, cadera:h }, TB.trisuit]);
+    if (p !== null && c !== null) res.push(['jersey', { pecho:p, cintura:c }, TB.jersey]);
+    if (c !== null && h !== null) res.push(['calza', { cintura:c, cadera:h }, TB.calza]);
+    if (p !== null && c === null && h === null) res.push(['top', { pecho:p }, { pecho: TB.jersey.pecho }]);
+    if (!res.length) {
+      out.innerHTML = '<p style="color:var(--red);font-size:0.85rem;">Ingresá pecho (top), pecho + cintura (jersey), cintura + cadera (calza) o las tres (Trisuit).</p>';
       return;
     }
-    var medidas = {
-      trisuit: { pecho:p, cintura:c, cadera:h },
-      jersey:  { pecho:p, cintura:c },
-      calza:   { cintura:c, cadera:h }
-    };
     var html = '';
-    ['trisuit','jersey','calza'].forEach(function(prenda) {
-      var i = minimo(medidas[prenda], TB[prenda]);
+    res.forEach(function(r) {
+      var i = minimo(r[1], r[2]);
       html += '<div style="border:1px solid var(--border);border-radius:4px;padding:0.75rem;margin-bottom:0.5rem;background:var(--surface2);">' +
-        '<div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.08em;">' + NM[prenda] + '</div>' +
+        '<div style="font-size:0.75rem;color:var(--muted);letter-spacing:0.08em;">' + NM[r[0]] + '</div>' +
         '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:2rem;color:var(--text);">' + (i < 0 ? 'Consultar' : TALLES[i]) + '</div>' +
         (i < 0 ? '<div style="font-size:0.75rem;color:var(--muted);">Tus medidas superan la tabla más grande (XXL).</div>' : '') +
         '</div>';
