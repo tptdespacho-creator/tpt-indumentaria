@@ -1,5 +1,6 @@
 # Jacana · talles
 
-Tienda y guía: https://www.jacana.ar/tienda/
+Tienda: https://www.jacana.ar/tienda/
+Guía de talles y medidas: https://jkn.com.ar/muestras-y-talles/
 
-Pendiente: copiar las tablas de la guía. No se pudo leer desde acá porque el sitio no respondió a la consulta automática.
+Tablas en [tablas.md](tablas.md): mujer, hombre/unisex e infantil, con cómo medir.
