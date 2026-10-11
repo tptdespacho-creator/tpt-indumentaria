@@ -77,17 +77,20 @@ function responder(obj) {
 // ─────────────────────────────── PLANILLA ───────────────────────────────
 function ss() { return SpreadsheetApp.openById(SHEET_ID); }
 
+// Columnas que se auto-agregan si no existen en la hoja (no incluir columnas
+// que la hoja ya tiene bajo otro nombre, como 'tipo de manga' por 'producto')
+var COLS_PEDIDO_NUEVAS = ['telefono', 'email'];
+
 function hojaPedidos() {
   var s = ss();
   var h = HOJA_PEDIDOS ? s.getSheetByName(HOJA_PEDIDOS) : s.getSheets()[0];
   if (!h) throw new Error('No existe la hoja de pedidos "' + HOJA_PEDIDOS + '"');
   if (h.getLastRow() === 0) { h.appendRow(COLS_PEDIDO); h.setFrozenRows(1); return h; }
-  // Agregar columnas faltantes al encabezado existente (ej: telefono, email)
+  // Solo agregar columnas nuevas que no existen (telefono, email)
   var hdr = encabezados(h);
-  COLS_PEDIDO.forEach(function(col) {
+  COLS_PEDIDO_NUEVAS.forEach(function(col) {
     if (hdr.indexOf(col) === -1) {
-      var lastCol = h.getLastColumn();
-      h.getRange(1, lastCol + 1).setValue(col);
+      h.getRange(1, h.getLastColumn() + 1).setValue(col);
     }
   });
   return h;
@@ -118,6 +121,28 @@ function hojaAtletas() {
   return h;
 }
 
+// Alias: nombre normalizado de columna en la hoja → nombres alternativos que puede enviar el formulario
+var COL_ALIAS_PEDIDO = {
+  'tipo de manga': ['producto','prenda','tipo de prenda'],
+  'precio unitario': ['precio','precio unit.'],
+  'precio total por item': ['subtotal','precio total por item'],
+  'precio total por pedido': ['total','precio total por pedido'],
+  'sena': ['sena','seña'],
+  'telefono': ['telefono','teléfono','tel','phone'],
+  'email': ['email','e-mail','mail','correo']
+};
+
+function buscarEnP(p, colNorm) {
+  // Primero intenta el nombre exacto normalizado
+  if (p[colNorm] != null) return p[colNorm];
+  // Luego prueba los alias
+  var aliases = COL_ALIAS_PEDIDO[colNorm] || [];
+  for (var i = 0; i < aliases.length; i++) {
+    if (p[aliases[i]] != null) return p[aliases[i]];
+  }
+  return null;
+}
+
 function agregarPedido(p) {
   if (!p.producto && !p.nombre) return { ok: false, error: 'Sin datos' };
   var lock = LockService.getScriptLock();
@@ -125,10 +150,11 @@ function agregarPedido(p) {
   try {
     var h = hojaPedidos();
     var hdr = encabezados(h);
+    var NUMS = ['cantidad','precio','subtotal','total','precio unitario','precio total por item','precio total por pedido'];
     var fila = hdr.map(function (k) {
-      var v = p[k];
+      var v = buscarEnP(p, k);
       if (v == null) return '';
-      if (['cantidad','precio','subtotal','total'].indexOf(k) >= 0) { var n = Number(v); return isNaN(n) ? v : n; }
+      if (NUMS.indexOf(k) >= 0) { var n = Number(v); return isNaN(n) ? v : n; }
       return v;
     });
     h.appendRow(fila);
