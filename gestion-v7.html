@@ -650,15 +650,11 @@ async function loginBackend(){
 }
 function cerrarSesion(){ TOKEN=''; localStorage.removeItem('ind_token'); AL=[]; $('cfg-be-st').textContent=t('t_sinsesion'); $('st-al').textContent=t('t_atletaspill')+t('t_sinsesion'); calcularAuto(); renderTodo(); }
 async function cargarAtletas(){
-  if(!TOKEN){ $('st-al').textContent=t('t_atletaspill')+t('t_sinsesion'); $('cfg-be-st').textContent=t('t_sinsesion'); return; }
   try{
-    const r=await fetch(BE_URL+'?recurso=alumnos&action=GET',{cache:'no-store',headers:{'Authorization':'Bearer '+TOKEN}});
-    const nuevo=r.headers.get('X-Token-Refresh'); if(nuevo){ TOKEN=nuevo; localStorage.setItem('ind_token',TOKEN); }
-    const j=await r.json();
-    if(!j.ok){ if(/autorizad|sesi/i.test(j.error||'')){ TOKEN=''; localStorage.removeItem('ind_token'); } throw new Error(j.error||'Error'); }
-    AL=(j.data||[]).map(a=>({id:String(a.ID),apellido:a.Apellido||'',nombre:a.Nombre||'',tel:a.Telefono||'',profe:a.Profe||'',full:norm((a.Apellido||'')+' '+(a.Nombre||''))}));
-    $('st-al').textContent=t('t_atletaspill')+AL.length; $('cfg-be-st').textContent=t('t_conectado')+AL.length+t('t_atletascarg');
-  }catch(e){ $('st-al').textContent=t('t_atletaspill')+t('t_planillaerror'); $('cfg-be-st').textContent='❌ '+e.message; }
+    const d=await gasGet({action:'getAtletas'});
+    AL=(d||[]).map(a=>({id:String(a.id||''),apellido:a.apellido||'',nombre:a.nombre||'',tel:a.telefono||'',profe:a.profe||'',full:norm((a.apellido||'')+' '+(a.nombre||''))}));
+    $('st-al').textContent=t('t_atletaspill')+AL.length;
+  }catch(e){ $('st-al').textContent=t('t_atletaspill')+'—'; }
   calcularAuto();
 }
 
